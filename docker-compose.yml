@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: balises-gateway:prod
+    ports:
+      - "6060:6060"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/balisedb
+      SPRING_DATASOURCE_USERNAME: adminbdb
+      SPRING_DATASOURCE_PASSWORD: To7Z2UCeWTsriPxbADX8
+    depends_on:
+      - postgres
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: web-balise-monitor-ui:prod
+    ports:
+      - "6061:80"
+    environment:
+      - REACT_APP_API_URL=http://backend:6060/api
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: balisedb
+      POSTGRES_USER: adminbdb
+      POSTGRES_PASSWORD: To7Z2UCeWTsriPxbADX8
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
