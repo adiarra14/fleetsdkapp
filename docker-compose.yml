@@ -1,8 +1,6 @@
 services:
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: adiarra/balises-gateway:latest
     ports:
       - "6060:6060"
     environment:
@@ -13,9 +11,7 @@ services:
       - postgres
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: adiarra/fleet-monitor-ui:latest
     ports:
       - "6061:80"
     environment:
