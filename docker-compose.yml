@@ -4,7 +4,6 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    image: balises-gateway:prod
     ports:
       - "6060:6060"
     environment:
@@ -18,7 +17,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    image: web-balise-monitor-ui:prod
     ports:
       - "6061:80"
     environment:
