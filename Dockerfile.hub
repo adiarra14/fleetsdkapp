@@ -1,0 +1,26 @@
+# Pre-built image for Docker Hub
+FROM maven:3.9-eclipse-temurin-17
+
+WORKDIR /app
+
+# Copy application files
+COPY pom.xml .
+COPY src ./src
+COPY maxvision-edge-protocol-gateway-service-sdk.jar ./
+
+# Install the SDK jar to Maven repo first
+RUN mvn install:install-file \
+    -Dfile=maxvision-edge-protocol-gateway-service-sdk.jar \
+    -DgroupId=com.maxvision \
+    -DartifactId=maxvision-edge-protocol-lock-sdk \
+    -Dversion=1.0.0-SNAPSHOT \
+    -Dpackaging=jar
+
+# Build application in verbose mode for debugging
+RUN mvn -X clean package -DskipTests
+
+# Expose the device communication port
+EXPOSE 6060
+
+# Run the application
+CMD ["java", "-jar", "target/fleet-gateway-1.0.0-SNAPSHOT.jar"]

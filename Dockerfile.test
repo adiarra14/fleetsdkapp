@@ -1,0 +1,24 @@
+# Test Maven + SDK JAR installation
+FROM maven:3.9-eclipse-temurin-17
+
+WORKDIR /app
+
+# Copy SDK JAR first
+COPY maxvision-edge-protocol-gateway-service-sdk.jar ./
+
+# List files to confirm copy worked
+RUN ls -la
+
+# Try to install the JAR to the local Maven repo
+RUN mvn install:install-file \
+    -Dfile=maxvision-edge-protocol-gateway-service-sdk.jar \
+    -DgroupId=com.maxvision \
+    -DartifactId=maxvision-edge-protocol-lock-sdk \
+    -Dversion=1.0.0-SNAPSHOT \
+    -Dpackaging=jar
+
+# Verify Maven install worked
+RUN mvn help:evaluate -Dexpression=maven.version -q -DforceStdout
+
+# Just print success message
+CMD ["echo", "Maven build test completed successfully"]

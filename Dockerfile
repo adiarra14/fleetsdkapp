@@ -1,25 +1,38 @@
-# Single-stage build with Maven and JRE
-FROM maven:3.9-eclipse-temurin-17
-WORKDIR /app
+# ---------- Build stage ----------
+FROM eclipse-temurin:17-jdk-alpine AS builder
+RUN apk add --no-cache maven git
+WORKDIR /workspace
 
-# Copy SDK JAR first and install it to local Maven repo
-COPY maxvision-edge-protocol-gateway-service-sdk.jar ./
-RUN mvn install:install-file \
-    -Dfile=maxvision-edge-protocol-gateway-service-sdk.jar \
+# copy pom.xml first
+COPY pom.xml .
+
+# copy and install SDK JAR to local Maven repo
+COPY lib/maxvision-edge-protocol-gateway-service-sdk.jar /tmp/sdk.jar
+RUN mvn -q \
+    install:install-file \
+    -Dfile=/tmp/sdk.jar \
     -DgroupId=com.maxvision \
     -DartifactId=maxvision-edge-protocol-lock-sdk \
     -Dversion=1.0.0-SNAPSHOT \
-    -Dpackaging=jar
+    -Dpackaging=jar \
+    -DgeneratePom=true
 
-# Copy application files
-COPY pom.xml .
+# prefetch dependencies
+RUN mvn -B dependency:go-offline
+
+# copy source code and build
 COPY src ./src
+RUN mvn -B clean package -DskipTests
 
-# Build the application
-RUN mvn clean package -DskipTests
+# ---------- Runtime stage ----------
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+
+# Copy the built artifact from the builder stage
+COPY --from=builder /workspace/target/fleet-gateway-1.0.0-SNAPSHOT.jar ./app.jar
 
 # Expose the device communication port
 EXPOSE 6060
 
 # Run the application
-ENTRYPOINT ["java", "-jar", "target/fleet-gateway-1.0.0-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
