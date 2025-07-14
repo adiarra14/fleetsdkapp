@@ -1,0 +1,12 @@
+# Simple placeholder backend
+FROM eclipse-temurin:17-jre-alpine
+
+WORKDIR /app
+
+# Create a simple Spring Boot application placeholder
+RUN echo '#!/bin/sh\n\necho "Fleet SDK Backend Placeholder"\necho "Backend service running on port 6060"\nwhile true; do sleep 10; done' > start.sh && \
+    chmod +x start.sh
+
+EXPOSE 6060
+
+CMD ["./start.sh"]

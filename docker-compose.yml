@@ -1,6 +1,6 @@
 services:
   backend:
-    image: adiarra/balises-gateway:latest
+    image: adiarra/ynnov-docker:fleet-backend-latest
     ports:
       - "6060:6060"
     environment:
@@ -11,7 +11,7 @@ services:
       - postgres
 
   frontend:
-    image: adiarra/fleet-monitor-ui:latest
+    image: adiarra/ynnov-docker:fleet-frontend-latest
     ports:
       - "6061:80"
     environment:
