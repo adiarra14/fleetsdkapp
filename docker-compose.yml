@@ -1,9 +1,7 @@
 services:
-  # Backend service using build-from-source
+  # Backend service using pre-built image
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: adiarra/ynnov-docker:fleet-backend-latest
     container_name: balise-sdk-service
     ports:
       - "6060:6060"
@@ -12,8 +10,6 @@ services:
       - SPRING_DATASOURCE_USERNAME=adminbdb
       - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
       - SERVER_PORT=6060
-      - SPRING_PROFILES_ACTIVE=backend
-      - JAVA_OPTS=-Xmx512m -Xms256m
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:6060/api/health"]
       interval: 30s
@@ -26,10 +22,11 @@ services:
 
   # TCP server for balise connections
   tcp-server:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: eclipse-temurin:17-jre-alpine
     container_name: balise-tcp-server
+    command: ["sh", "-c", "java -jar /app/lib/fleet-gateway-1.0.0-SNAPSHOT.jar --spring.profiles.active=tcp-server --server.port=6060"]
+    volumes:
+      - ./target:/app/lib
     ports:
       - "6070:6060"
     environment:
@@ -38,17 +35,14 @@ services:
       - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
       - TCP_SERVER_PORT=6060
       - SERVER_PORT=6060
-      - SPRING_PROFILES_ACTIVE=tcp-server
       - JAVA_OPTS=-Xmx256m -Xms128m
     depends_on:
       - postgres
       - backend
 
-  # Frontend service using build-from-source
+  # Frontend service using pre-built image
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: adiarra/ynnov-docker:fleet-frontend-latest
     container_name: balise-web-ui
     ports:
       - "6061:80"
