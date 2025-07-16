@@ -1,11 +1,8 @@
 services:
   # Backend service using pre-built image
   backend:
-    image: eclipse-temurin:17-jre-alpine
+    image: adiarra/ynnov-docker:fleet-backend-latest
     container_name: balise-sdk-service
-    command: ["sh", "-c", "java -jar /app/lib/fleet-gateway-1.0.0-SNAPSHOT.jar --spring.profiles.active=backend --server.port=6060"]
-    volumes:
-      - ./target:/app/lib
     ports:
       - "6060:6060"
     environment:
@@ -13,9 +10,8 @@ services:
       - SPRING_DATASOURCE_USERNAME=adminbdb
       - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
       - SERVER_PORT=6060
-      - JAVA_OPTS=-Xmx512m -Xms256m
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6060/api/health"]
+      test: ["CMD-SHELL", "nc -z localhost 6060 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -26,11 +22,8 @@ services:
 
   # TCP server for balise connections
   tcp-server:
-    image: eclipse-temurin:17-jre-alpine
+    image: adiarra/ynnov-docker:fleet-tcp-server-latest
     container_name: balise-tcp-server
-    command: ["sh", "-c", "java -jar /app/lib/fleet-gateway-1.0.0-SNAPSHOT.jar --spring.profiles.active=tcp-server --server.port=6060"]
-    volumes:
-      - ./target:/app/lib
     ports:
       - "6070:6060"
     environment:
@@ -39,7 +32,6 @@ services:
       - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
       - TCP_SERVER_PORT=6060
       - SERVER_PORT=6060
-      - JAVA_OPTS=-Xmx256m -Xms128m
     depends_on:
       - postgres
       - backend
