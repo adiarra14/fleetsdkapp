@@ -1,29 +1,80 @@
 services:
+  # Backend service using build-from-source
   backend:
-    image: adiarra/ynnov-docker:fleet-backend-latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: balise-sdk-service
     ports:
       - "6060:6060"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/balisedb
-      SPRING_DATASOURCE_USERNAME: adminbdb
-      SPRING_DATASOURCE_PASSWORD: To7Z2UCeWTsriPxbADX8
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/balisedb
+      - SPRING_DATASOURCE_USERNAME=adminbdb
+      - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
+      - SERVER_PORT=6060
+      - SPRING_PROFILES_ACTIVE=backend
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6060/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # TCP server for balise connections
+  tcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: balise-tcp-server
+    ports:
+      - "6070:6060"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/balisedb
+      - SPRING_DATASOURCE_USERNAME=adminbdb
+      - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
+      - TCP_SERVER_PORT=6060
+      - SERVER_PORT=6060
+      - SPRING_PROFILES_ACTIVE=tcp-server
+      - JAVA_OPTS=-Xmx256m -Xms128m
     depends_on:
       - postgres
+      - backend
 
+  # Frontend service using build-from-source
   frontend:
-    image: adiarra/ynnov-docker:fleet-frontend-latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: balise-web-ui
     ports:
       - "6061:80"
     environment:
       - REACT_APP_API_URL=http://backend:6060/api
+    depends_on:
+      - backend
 
+  # PostgreSQL database with PostGIS extension
   postgres:
-    image: postgres:15
+    image: postgis/postgis:14-3.3
+    container_name: balise-postgres
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: balisedb
       POSTGRES_USER: adminbdb
       POSTGRES_PASSWORD: To7Z2UCeWTsriPxbADX8
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U adminbdb -d balisedb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   pgdata:
