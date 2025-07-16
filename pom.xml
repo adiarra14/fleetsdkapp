@@ -51,6 +51,8 @@
             <groupId>com.maxvision</groupId>
             <artifactId>maxvision-edge-protocol-lock-sdk</artifactId>
             <version>1.0.0-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/maxvision-edge-protocol-gateway-service-sdk.jar</systemPath>
         </dependency>
         <!-- Lombok -->
         <dependency>

@@ -1,0 +1,43 @@
+# Simple Maven-focused Dockerfile to troubleshoot build issues
+FROM eclipse-temurin:17-jdk-alpine
+
+# Install Maven and essential tools
+RUN apk add --no-cache maven git curl
+
+WORKDIR /app
+
+# Copy SDK JAR and POM first for dependency resolution
+COPY lib/maxvision-edge-protocol-gateway-service-sdk.jar /app/lib/
+COPY pom.xml /app/
+
+# Add detailed logging for SDK JAR installation
+RUN echo "=== DEBUGGING SDK JAR INSTALLATION ===" && \
+    ls -la /app/lib/ && \
+    echo "Installing SDK JAR to local Maven repo..." && \
+    mvn install:install-file \
+    -Dfile=/app/lib/maxvision-edge-protocol-gateway-service-sdk.jar \
+    -DgroupId=com.maxvision \
+    -DartifactId=maxvision-edge-protocol-lock-sdk \
+    -Dversion=1.0.0-SNAPSHOT \
+    -Dpackaging=jar \
+    -DgeneratePom=true \
+    -DcreateChecksum=true \
+    -X
+
+# Download dependencies with detailed logging 
+RUN echo "=== DEBUGGING DEPENDENCY RESOLUTION ===" && \
+    mvn dependency:resolve -X
+
+# Copy source code
+COPY src /app/src/
+
+# Show directory structure before build
+RUN echo "=== PROJECT STRUCTURE ===" && \
+    find . -type f -name "*.java" | sort
+
+# Attempt build with detailed logging
+RUN echo "=== DEBUGGING MAVEN BUILD ===" && \
+    mvn -B clean package -DskipTests -X
+
+# Keep container running for inspection
+CMD ["sh", "-c", "echo 'Build complete, container kept alive for inspection'; tail -f /dev/null"]
