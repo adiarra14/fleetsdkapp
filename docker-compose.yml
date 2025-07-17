@@ -22,8 +22,9 @@ services:
 
   # TCP server for balise connections
   tcp-server:
-    image: adiarra/ynnov-docker:fleet-tcp-server-latest
+    image: alpine:latest
     container_name: balise-tcp-server
+    command: ["/bin/sh", "-c", "echo 'TCP Server placeholder' && while true; do sleep 3600; done"]
     ports:
       - "6070:6060"
     environment:
