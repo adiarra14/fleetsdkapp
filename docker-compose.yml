@@ -1,42 +1,52 @@
 services:
-  # Backend service using placeholder image
-  backend:
-    image: alpine:latest
+  # Backend service using Java implementation with SDK
+  balise-sdk-service:
+    image: eclipse-temurin:17-jre-alpine
     container_name: balise-sdk-service
-    command: ["/bin/sh", "-c", "echo 'Backend Server placeholder' && while true; do sleep 3600; done"]
+    command: sh /app/start.sh
+    volumes:
+      - ./backend-service/lib:/app/lib
+      - ./backend-service/start.sh:/app/start.sh
     ports:
-      - "6060:6060"
+      - "7000:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/balisedb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://balise-postgres:5432/balisedb
       - SPRING_DATASOURCE_USERNAME=adminbdb
       - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
-      - SERVER_PORT=6060
+      - SPRING_PROFILES_ACTIVE=backend
+      - SERVER_PORT=8080
+      - JAVA_OPTS=-Xmx512m -Xms256m
     healthcheck:
-      test: ["CMD-SHELL", "echo 'Health check passed'"]
+      test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 20s
     depends_on:
-      postgres:
+      balise-postgres:
         condition: service_healthy
 
   # TCP server for balise connections
-  tcp-server:
-    image: alpine:latest
+  balise-tcp-server:
+    image: openjdk:17-slim
     container_name: balise-tcp-server
-    command: ["/bin/sh", "-c", "echo 'TCP Server placeholder' && while true; do sleep 3600; done"]
+    command: sh /app/start.sh
+    volumes:
+      - ./tcp-server-service/lib:/app/lib
+      - ./tcp-server-service/start.sh:/app/start.sh
     ports:
-      - "6070:6060"
+      - "7003:6060"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/balisedb
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://balise-postgres:5432/balisedb
       - SPRING_DATASOURCE_USERNAME=adminbdb
       - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
+      - SPRING_PROFILES_ACTIVE=tcp-server
       - TCP_SERVER_PORT=6060
       - SERVER_PORT=6060
+      - JAVA_OPTS=-Xmx256m -Xms128m
     depends_on:
-      - postgres
-      - backend
+      - balise-postgres
+      - balise-sdk-service
 
   # Frontend service using pre-built image
   frontend:
@@ -45,16 +55,16 @@ services:
     ports:
       - "6061:80"
     environment:
-      - REACT_APP_API_URL=http://backend:6060/api
+      - REACT_APP_API_URL=http://balise-sdk-service:8080/api
     depends_on:
-      - backend
+      - balise-sdk-service
 
   # PostgreSQL database with PostGIS extension
-  postgres:
+  balise-postgres:
     image: postgis/postgis:14-3.3
     container_name: balise-postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_DB: balisedb
       POSTGRES_USER: adminbdb
