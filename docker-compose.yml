@@ -1,12 +1,10 @@
 services:
   # Backend service using Java implementation with SDK
   balise-sdk-service:
-    image: eclipse-temurin:17-jre-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
     container_name: balise-sdk-service
-    command: sh -c "chmod +x /app/start.sh && sh /app/start.sh"
-    volumes:
-      - ./backend-service/lib:/app/lib
-      - ./backend-service/start.sh:/app/start.sh
     ports:
       - "7000:8080"
     environment:
@@ -28,12 +26,10 @@ services:
 
   # TCP server for balise connections
   balise-tcp-server:
-    image: openjdk:17-slim
+    build:
+      context: .
+      dockerfile: Dockerfile.tcp-server
     container_name: balise-tcp-server
-    command: sh -c "chmod +x /app/start.sh && sh /app/start.sh"
-    volumes:
-      - ./tcp-server-service/lib:/app/lib
-      - ./tcp-server-service/start.sh:/app/start.sh
     ports:
       - "7003:6060"
     environment:
