@@ -3,7 +3,7 @@ services:
   balise-sdk-service:
     image: eclipse-temurin:17-jre-alpine
     container_name: balise-sdk-service
-    command: sh /app/start.sh
+    command: sh -c "chmod +x /app/start.sh && sh /app/start.sh"
     volumes:
       - ./backend-service/lib:/app/lib
       - ./backend-service/start.sh:/app/start.sh
@@ -30,7 +30,7 @@ services:
   balise-tcp-server:
     image: openjdk:17-slim
     container_name: balise-tcp-server
-    command: sh /app/start.sh
+    command: sh -c "chmod +x /app/start.sh && sh /app/start.sh"
     volumes:
       - ./tcp-server-service/lib:/app/lib
       - ./tcp-server-service/start.sh:/app/start.sh
