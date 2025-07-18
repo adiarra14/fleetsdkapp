@@ -29,7 +29,7 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'env | grep -v PASSWORD' >> /app/start.sh && \
     echo 'echo "==== PORTAINER-DEBUG: Java version ====" ' >> /app/start.sh && \
     echo 'java -version' >> /app/start.sh && \
-    echo 'echo "==== PORTAINER-DEBUG: Starting application ====" ' >> /app/start.sh && \
+    echo 'echo "==== PORTAINER-DEBUG: Starting application with MinimalTcpServer class ====" ' >> /app/start.sh && \
     echo 'java $JAVA_OPTS -cp /app/app.jar com.maxvision.tcpserver.MinimalTcpServer &' >> /app/start.sh && \
     echo 'JAVA_PID=$!' >> /app/start.sh && \
     echo 'echo "Java process started with PID: $JAVA_PID"' >> /app/start.sh && \
