@@ -1,9 +1,11 @@
 #!/bin/sh
 
-# Create a log file that will be visible to Docker/Portainer
-echo "PORTAINER-DEBUG: Fleet SDK TCP Server starting at $(date)" > /proc/1/fd/1
-echo "PORTAINER-DEBUG: Environment variables:" > /proc/1/fd/1
-env | grep -v PASSWORD > /proc/1/fd/1
+# Write directly to stdout/stderr for Portainer logging
+exec 1>/dev/stdout 2>/dev/stderr
+
+echo "==== PORTAINER-DEBUG: Fleet SDK TCP Server starting at $(date) ===="
+echo "==== PORTAINER-DEBUG: Environment variables: ===="
+env | grep -v PASSWORD
 
 # Always keep the container running, regardless of application exit status
 KEEP_RUNNING=true
