@@ -1,10 +1,47 @@
-# Single-stage build using pre-built JAR from lib directory
+# Build stage
+FROM eclipse-temurin:17-jdk-alpine AS build
+WORKDIR /app
+
+# Install Maven
+RUN apk add --no-cache maven
+
+# Copy only the necessary files to compile MinimalBackendServer
+COPY backend-service/src/main/java/com/maxvision/backend/MinimalBackendServer.java /app/src/main/java/com/maxvision/backend/
+COPY backend-service/lib/*.jar /app/lib/
+
+# Create a minimal pom.xml to compile MinimalBackendServer
+RUN echo '<?xml version="1.0" encoding="UTF-8"?>' > pom.xml && \
+    echo '<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">' >> pom.xml && \
+    echo '  <modelVersion>4.0.0</modelVersion>' >> pom.xml && \
+    echo '  <groupId>com.maxvision</groupId>' >> pom.xml && \
+    echo '  <artifactId>backend</artifactId>' >> pom.xml && \
+    echo '  <version>1.0.0</version>' >> pom.xml && \
+    echo '  <properties>' >> pom.xml && \
+    echo '    <maven.compiler.source>17</maven.compiler.source>' >> pom.xml && \
+    echo '    <maven.compiler.target>17</maven.compiler.target>' >> pom.xml && \
+    echo '  </properties>' >> pom.xml && \
+    echo '  <dependencies>' >> pom.xml && \
+    echo '    <dependency>' >> pom.xml && \
+    echo '      <groupId>maxvision</groupId>' >> pom.xml && \
+    echo '      <artifactId>sdk</artifactId>' >> pom.xml && \
+    echo '      <version>1.0</version>' >> pom.xml && \
+    echo '      <scope>system</scope>' >> pom.xml && \
+    echo '      <systemPath>/app/lib/maxvision-edge-protocol-gateway-service-sdk.jar</systemPath>' >> pom.xml && \
+    echo '    </dependency>' >> pom.xml && \
+    echo '  </dependencies>' >> pom.xml && \
+    echo '</project>' >> pom.xml
+
+# Compile MinimalBackendServer
+RUN mkdir -p /app/target/classes && \
+    javac -cp "/app/lib/*" -d /app/target/classes src/main/java/com/maxvision/backend/MinimalBackendServer.java
+
+# Runtime stage
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Copy the pre-built JARs from lib directory
-COPY backend-service/lib/*.jar /app/
-
+# Copy compiled classes and libs from build stage
+COPY --from=build /app/target/classes /app/classes
+COPY --from=build /app/lib/*.jar /app/lib/
 
 # Create enhanced startup script with better logging
 RUN echo '#!/bin/sh' > /app/start.sh && \
@@ -15,8 +52,10 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'env | grep -v PASSWORD' >> /app/start.sh && \
     echo 'echo "==== PORTAINER-DEBUG: Java version ====" ' >> /app/start.sh && \
     echo 'java -version' >> /app/start.sh && \
+    echo 'echo "==== PORTAINER-DEBUG: Directory contents ====" ' >> /app/start.sh && \
+    echo 'ls -la /app' >> /app/start.sh && \
     echo 'echo "==== PORTAINER-DEBUG: Starting application ====" ' >> /app/start.sh && \
-    echo 'java $JAVA_OPTS -cp /app/app.jar com.maxvision.backend.MinimalBackendServer &' >> /app/start.sh && \
+    echo 'java $JAVA_OPTS -cp "/app/classes:/app/lib/*" com.maxvision.backend.MinimalBackendServer &' >> /app/start.sh && \
     echo 'JAVA_PID=$!' >> /app/start.sh && \
     echo 'echo "Java process started with PID: $JAVA_PID"' >> /app/start.sh && \
     echo 'sleep 5' >> /app/start.sh && \
@@ -34,8 +73,8 @@ ENV SPRING_PROFILES_ACTIVE=backend
 ENV SERVER_PORT=8080
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
 
-# Expose port
+# Expose the port
 EXPOSE 8080
 
-# Run the application using the wrapper script
+# Run the script to start the application
 CMD ["/app/start.sh"]
