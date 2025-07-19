@@ -1,51 +1,49 @@
-# Spring Boot TCP server with Maxvision SDK integration
-FROM maven:3.8-eclipse-temurin-17-alpine AS build
+# Simplified TCP server using pre-built JAR approach
+FROM eclipse-temurin:17-jdk-alpine
 
 # Cache-busting argument to force rebuild
 ARG CACHE_BUST=default
 RUN echo "Cache bust: $CACHE_BUST"
 RUN echo "Force rebuild TCP server at $(date)"
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the POM file and lib directory first to leverage Docker cache
-COPY tcp-server-service/pom.xml .
-COPY tcp-server-service/lib/ ./lib/
+# Copy the pre-built JAR from lib directory (if available) or use SDK JAR directly
+COPY tcp-server-service/lib/*.jar /app/lib/
 
-# Install the SDK JAR into local Maven repository
-RUN mvn install:install-file \
-    -Dfile=./lib/maxvision-edge-protocol-gateway-service-sdk.jar \
-    -DgroupId=com.maxvision \
-    -DartifactId=maxvision-edge-protocol-gateway-service-sdk \
-    -Dversion=1.0.0-SNAPSHOT \
-    -Dpackaging=jar \
-    -DgeneratePom=true
+# Download PostgreSQL JDBC driver if not present
+RUN wget -O /app/lib/postgresql.jar https://jdbc.postgresql.org/download/postgresql-42.7.2.jar || echo "PostgreSQL driver download failed, using existing"
 
-# Copy the rest of the project source code
-COPY tcp-server-service/src ./src/
+# Copy source files for compilation
+COPY tcp-server-service/src/main/java/ /app/src/main/java/
+COPY tcp-server-service/src/main/resources/ /app/src/main/resources/
 
-# Build the application
-RUN mvn clean package -DskipTests
+# Compile the Java application with all dependencies
+RUN mkdir -p /app/classes && \
+    javac -cp "/app/lib/*" -d /app/classes \
+    /app/src/main/java/com/maxvision/tcpserver/*.java \
+    /app/src/main/java/com/maxvision/tcpserver/service/*.java \
+    /app/src/main/java/com/maxvision/tcpserver/config/*.java
 
-# Runtime image
-FROM eclipse-temurin:17-jdk-alpine
+# Copy resources to classes directory
+RUN cp -r /app/src/main/resources/* /app/classes/ 2>/dev/null || echo "No resources to copy"
 
-WORKDIR /app
+# Create a manifest file for the JAR
+RUN echo "Main-Class: com.maxvision.tcpserver.TcpServerApplication" > /app/manifest.txt && \
+    echo "Class-Path: lib/maxvision-edge-protocol-gateway-service-sdk.jar lib/postgresql.jar" >> /app/manifest.txt
 
-# Copy the built JAR file
-COPY --from=build /app/target/*.jar app.jar
-
-# Copy the lib directory with SDK JAR (needed at runtime)
-COPY tcp-server-service/lib/ ./lib/
+# Create the application JAR
+RUN cd /app && jar cfm tcp-server-app.jar manifest.txt -C classes .
 
 # Create startup script
 RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'echo "==== BALISE TCP SERVER: Starting at $(date) ===="' >> /app/start.sh && \
     echo 'echo "==== Directory contents ===="' >> /app/start.sh && \
     echo 'ls -la /app' >> /app/start.sh && \
+    echo 'echo "==== Lib directory contents ===="' >> /app/start.sh && \
+    echo 'ls -la /app/lib' >> /app/start.sh && \
     echo 'echo "==== Starting Balise TCP Server with SDK Integration ===="' >> /app/start.sh && \
-    echo 'java -Dloader.path=/app/lib -jar app.jar &' >> /app/start.sh && \
+    echo 'java -cp "/app/lib/*:/app/tcp-server-app.jar" com.maxvision.tcpserver.TcpServerApplication &' >> /app/start.sh && \
     echo 'JAVA_PID=$!' >> /app/start.sh && \
     echo 'echo "Balise TCP Server started with PID: $JAVA_PID"' >> /app/start.sh && \
     echo 'sleep 5' >> /app/start.sh && \
@@ -53,13 +51,15 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo '    echo "Balise TCP Server is running successfully"' >> /app/start.sh && \
     echo 'else' >> /app/start.sh && \
     echo '    echo "ERROR: Balise TCP Server failed to start"' >> /app/start.sh && \
+    echo '    echo "Checking for compilation errors..."' >> /app/start.sh && \
+    echo '    find /app/classes -name "*.class" | head -10' >> /app/start.sh && \
     echo 'fi' >> /app/start.sh && \
     echo 'echo "Keeping container alive for monitoring"' >> /app/start.sh && \
     echo 'while true; do' >> /app/start.sh && \
     echo '    echo "HEARTBEAT: Balise TCP Server alive at $(date)"' >> /app/start.sh && \
     echo '    if ! kill -0 $JAVA_PID 2>/dev/null; then' >> /app/start.sh && \
     echo '        echo "ERROR: Java process died, restarting..."' >> /app/start.sh && \
-    echo '        java -Dloader.path=/app/lib -jar app.jar &' >> /app/start.sh && \
+    echo '        java -cp "/app/lib/*:/app/tcp-server-app.jar" com.maxvision.tcpserver.TcpServerApplication &' >> /app/start.sh && \
     echo '        JAVA_PID=$!' >> /app/start.sh && \
     echo '    fi' >> /app/start.sh && \
     echo '    sleep 60' >> /app/start.sh && \
