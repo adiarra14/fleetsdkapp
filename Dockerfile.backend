@@ -1,10 +1,10 @@
-# Hybrid backend with REST API functionality using built-in Java HTTP server
+# Database-integrated backend with REST API functionality
 FROM eclipse-temurin:17-jdk-alpine
 
 # Cache-busting argument to force rebuild
 ARG CACHE_BUST=default
 RUN echo "Cache bust: $CACHE_BUST"
-RUN echo "Force rebuild backend with hybrid approach at $(date)"
+RUN echo "Force rebuild backend with database integration at $(date)"
 
 WORKDIR /app
 
@@ -14,95 +14,148 @@ COPY backend-service/lib/*.jar /app/lib/
 # Download PostgreSQL JDBC driver (ignore errors if no internet)
 RUN wget -O /app/lib/postgresql.jar https://jdbc.postgresql.org/download/postgresql-42.7.2.jar || echo "PostgreSQL download failed, using existing"
 
-# Create a hybrid backend server with REST API functionality using built-in Java HTTP server
-RUN echo 'import java.io.*;' > /app/HybridBackendServer.java && \
-    echo 'import java.net.*;' >> /app/HybridBackendServer.java && \
-    echo 'import com.sun.net.httpserver.*;' >> /app/HybridBackendServer.java && \
-    echo 'import java.util.*;' >> /app/HybridBackendServer.java && \
-    echo 'import java.sql.*;' >> /app/HybridBackendServer.java && \
-    echo 'import java.time.LocalDateTime;' >> /app/HybridBackendServer.java && \
-    echo 'public class HybridBackendServer {' >> /app/HybridBackendServer.java && \
-    echo '    private static final String DB_URL = "jdbc:postgresql://balise-postgres:5432/balisedb";' >> /app/HybridBackendServer.java && \
-    echo '    private static final String DB_USER = "adminbdb";' >> /app/HybridBackendServer.java && \
-    echo '    private static final String DB_PASSWORD = "To7Z2UCeWTsriPxbADX8";' >> /app/HybridBackendServer.java && \
-    echo '    public static void main(String[] args) throws Exception {' >> /app/HybridBackendServer.java && \
-    echo '        System.out.println("=== HYBRID BACKEND SERVER: Starting at " + LocalDateTime.now() + " ===");' >> /app/HybridBackendServer.java && \
-    echo '        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);' >> /app/HybridBackendServer.java && \
-    echo '        server.createContext("/health", exchange -> {' >> /app/HybridBackendServer.java && \
-    echo '            String response = "{\"status\":\"healthy\",\"service\":\"Backend API\",\"timestamp\":\"" + LocalDateTime.now() + "\",\"sdkIntegration\":\"ready\"}";' >> /app/HybridBackendServer.java && \
-    echo '            exchange.getResponseHeaders().set("Content-Type", "application/json");' >> /app/HybridBackendServer.java && \
-    echo '            exchange.sendResponseHeaders(200, response.getBytes().length);' >> /app/HybridBackendServer.java && \
-    echo '            try (OutputStream os = exchange.getResponseBody()) {' >> /app/HybridBackendServer.java && \
-    echo '                os.write(response.getBytes());' >> /app/HybridBackendServer.java && \
-    echo '            }' >> /app/HybridBackendServer.java && \
-    echo '        });' >> /app/HybridBackendServer.java && \
-    echo '        server.createContext("/api/balises", exchange -> {' >> /app/HybridBackendServer.java && \
-    echo '            if ("GET".equals(exchange.getRequestMethod())) {' >> /app/HybridBackendServer.java && \
-    echo '                String response = "{\"balises\":[],\"count\":0,\"status\":\"SDK Integration Ready\",\"timestamp\":\"" + LocalDateTime.now() + "\"}";' >> /app/HybridBackendServer.java && \
-    echo '                exchange.getResponseHeaders().set("Content-Type", "application/json");' >> /app/HybridBackendServer.java && \
-    echo '                exchange.sendResponseHeaders(200, response.getBytes().length);' >> /app/HybridBackendServer.java && \
-    echo '                try (OutputStream os = exchange.getResponseBody()) {' >> /app/HybridBackendServer.java && \
-    echo '                    os.write(response.getBytes());' >> /app/HybridBackendServer.java && \
-    echo '                }' >> /app/HybridBackendServer.java && \
-    echo '            } else {' >> /app/HybridBackendServer.java && \
-    echo '                exchange.sendResponseHeaders(405, 0);' >> /app/HybridBackendServer.java && \
-    echo '            }' >> /app/HybridBackendServer.java && \
-    echo '        });' >> /app/HybridBackendServer.java && \
-    echo '        server.createContext("/api/balises/", exchange -> {' >> /app/HybridBackendServer.java && \
-    echo '            if ("POST".equals(exchange.getRequestMethod()) && exchange.getRequestURI().getPath().endsWith("/command")) {' >> /app/HybridBackendServer.java && \
-    echo '                String path = exchange.getRequestURI().getPath();' >> /app/HybridBackendServer.java && \
-    echo '                String baliseId = path.split("/")[3];' >> /app/HybridBackendServer.java && \
-    echo '                String response = "{\"baliseId\":\"" + baliseId + "\",\"status\":\"command queued\",\"timestamp\":\"" + LocalDateTime.now() + "\"}";' >> /app/HybridBackendServer.java && \
-    echo '                System.out.println("Command received for balise: " + baliseId);' >> /app/HybridBackendServer.java && \
-    echo '                exchange.getResponseHeaders().set("Content-Type", "application/json");' >> /app/HybridBackendServer.java && \
-    echo '                exchange.sendResponseHeaders(200, response.getBytes().length);' >> /app/HybridBackendServer.java && \
-    echo '                try (OutputStream os = exchange.getResponseBody()) {' >> /app/HybridBackendServer.java && \
-    echo '                    os.write(response.getBytes());' >> /app/HybridBackendServer.java && \
-    echo '                }' >> /app/HybridBackendServer.java && \
-    echo '            } else {' >> /app/HybridBackendServer.java && \
-    echo '                exchange.sendResponseHeaders(404, 0);' >> /app/HybridBackendServer.java && \
-    echo '            }' >> /app/HybridBackendServer.java && \
-    echo '        });' >> /app/HybridBackendServer.java && \
-    echo '        server.start();' >> /app/HybridBackendServer.java && \
-    echo '        System.out.println("=== Hybrid Backend Server listening on port 8080 ===");' >> /app/HybridBackendServer.java && \
-    echo '        System.out.println("=== REST API Endpoints Available ===");' >> /app/HybridBackendServer.java && \
-    echo '        System.out.println("=== SDK Integration Ready ===");' >> /app/HybridBackendServer.java && \
-    echo '        while (true) {' >> /app/HybridBackendServer.java && \
-    echo '            Thread.sleep(60000);' >> /app/HybridBackendServer.java && \
-    echo '            System.out.println("HEARTBEAT: Hybrid Backend alive at " + LocalDateTime.now());' >> /app/HybridBackendServer.java && \
-    echo '        }' >> /app/HybridBackendServer.java && \
-    echo '    }' >> /app/HybridBackendServer.java && \
-    echo '}' >> /app/HybridBackendServer.java
+# Create a database-integrated backend server with full REST API functionality
+RUN echo 'import java.io.*;' > /app/DatabaseBackendServer.java && \
+    echo 'import java.net.*;' >> /app/DatabaseBackendServer.java && \
+    echo 'import com.sun.net.httpserver.*;' >> /app/DatabaseBackendServer.java && \
+    echo 'import java.util.*;' >> /app/DatabaseBackendServer.java && \
+    echo 'import java.sql.*;' >> /app/DatabaseBackendServer.java && \
+    echo 'import java.time.LocalDateTime;' >> /app/DatabaseBackendServer.java && \
+    echo 'import java.util.concurrent.*;' >> /app/DatabaseBackendServer.java && \
+    echo 'public class DatabaseBackendServer {' >> /app/DatabaseBackendServer.java && \
+    echo '    private static final String DB_URL = "jdbc:postgresql://balise-postgres:5432/balisedb";' >> /app/DatabaseBackendServer.java && \
+    echo '    private static final String DB_USER = "adminbdb";' >> /app/DatabaseBackendServer.java && \
+    echo '    private static final String DB_PASSWORD = "To7Z2UCeWTsriPxbADX8";' >> /app/DatabaseBackendServer.java && \
+    echo '    private static Connection dbConnection;' >> /app/DatabaseBackendServer.java && \
+    echo '    public static void main(String[] args) throws Exception {' >> /app/DatabaseBackendServer.java && \
+    echo '        System.out.println("=== DATABASE BACKEND SERVER: Starting at " + LocalDateTime.now() + " ===");' >> /app/DatabaseBackendServer.java && \
+    echo '        // Initialize database connection' >> /app/DatabaseBackendServer.java && \
+    echo '        initializeDatabase();' >> /app/DatabaseBackendServer.java && \
+    echo '        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);' >> /app/DatabaseBackendServer.java && \
+    echo '        server.createContext("/health", exchange -> {' >> /app/DatabaseBackendServer.java && \
+    echo '            String dbStatus = checkDatabaseConnection() ? "connected" : "disconnected";' >> /app/DatabaseBackendServer.java && \
+    echo '            String response = "{\"status\":\"healthy\",\"service\":\"Backend API\",\"timestamp\":\"" + LocalDateTime.now() + "\",\"database\":\"" + dbStatus + "\",\"sdkIntegration\":\"ready\"}";' >> /app/DatabaseBackendServer.java && \
+    echo '            exchange.getResponseHeaders().set("Content-Type", "application/json");' >> /app/DatabaseBackendServer.java && \
+    echo '            exchange.sendResponseHeaders(200, response.getBytes().length);' >> /app/DatabaseBackendServer.java && \
+    echo '            try (OutputStream os = exchange.getResponseBody()) {' >> /app/DatabaseBackendServer.java && \
+    echo '                os.write(response.getBytes());' >> /app/DatabaseBackendServer.java && \
+    echo '            }' >> /app/DatabaseBackendServer.java && \
+    echo '        });' >> /app/DatabaseBackendServer.java && \
+    echo '        server.createContext("/api/balises", exchange -> {' >> /app/DatabaseBackendServer.java && \
+    echo '            if ("GET".equals(exchange.getRequestMethod())) {' >> /app/DatabaseBackendServer.java && \
+    echo '                String baliseData = getBaliseData();' >> /app/DatabaseBackendServer.java && \
+    echo '                exchange.getResponseHeaders().set("Content-Type", "application/json");' >> /app/DatabaseBackendServer.java && \
+    echo '                exchange.sendResponseHeaders(200, baliseData.getBytes().length);' >> /app/DatabaseBackendServer.java && \
+    echo '                try (OutputStream os = exchange.getResponseBody()) {' >> /app/DatabaseBackendServer.java && \
+    echo '                    os.write(baliseData.getBytes());' >> /app/DatabaseBackendServer.java && \
+    echo '                }' >> /app/DatabaseBackendServer.java && \
+    echo '            } else {' >> /app/DatabaseBackendServer.java && \
+    echo '                exchange.sendResponseHeaders(405, 0);' >> /app/DatabaseBackendServer.java && \
+    echo '            }' >> /app/DatabaseBackendServer.java && \
+    echo '        });' >> /app/DatabaseBackendServer.java && \
+    echo '        server.createContext("/api/balises/", exchange -> {' >> /app/DatabaseBackendServer.java && \
+    echo '            if ("POST".equals(exchange.getRequestMethod()) && exchange.getRequestURI().getPath().endsWith("/command")) {' >> /app/DatabaseBackendServer.java && \
+    echo '                String path = exchange.getRequestURI().getPath();' >> /app/DatabaseBackendServer.java && \
+    echo '                String baliseId = path.split("/")[3];' >> /app/DatabaseBackendServer.java && \
+    echo '                String response = sendBaliseCommand(baliseId);' >> /app/DatabaseBackendServer.java && \
+    echo '                System.out.println("Command received for balise: " + baliseId);' >> /app/DatabaseBackendServer.java && \
+    echo '                exchange.getResponseHeaders().set("Content-Type", "application/json");' >> /app/DatabaseBackendServer.java && \
+    echo '                exchange.sendResponseHeaders(200, response.getBytes().length);' >> /app/DatabaseBackendServer.java && \
+    echo '                try (OutputStream os = exchange.getResponseBody()) {' >> /app/DatabaseBackendServer.java && \
+    echo '                    os.write(response.getBytes());' >> /app/DatabaseBackendServer.java && \
+    echo '                }' >> /app/DatabaseBackendServer.java && \
+    echo '            } else {' >> /app/DatabaseBackendServer.java && \
+    echo '                exchange.sendResponseHeaders(404, 0);' >> /app/DatabaseBackendServer.java && \
+    echo '            }' >> /app/DatabaseBackendServer.java && \
+    echo '        });' >> /app/DatabaseBackendServer.java && \
+    echo '        server.start();' >> /app/DatabaseBackendServer.java && \
+    echo '        System.out.println("=== Database Backend Server listening on port 8080 ===");' >> /app/DatabaseBackendServer.java && \
+    echo '        System.out.println("=== REST API Endpoints with Database Integration ===");' >> /app/DatabaseBackendServer.java && \
+    echo '        System.out.println("=== SDK Integration Ready ===");' >> /app/DatabaseBackendServer.java && \
+    echo '        while (true) {' >> /app/DatabaseBackendServer.java && \
+    echo '            Thread.sleep(60000);' >> /app/DatabaseBackendServer.java && \
+    echo '            System.out.println("HEARTBEAT: Database Backend alive at " + LocalDateTime.now());' >> /app/DatabaseBackendServer.java && \
+    echo '        }' >> /app/DatabaseBackendServer.java && \
+    echo '    }' >> /app/DatabaseBackendServer.java && \
+    echo '    private static void initializeDatabase() {' >> /app/DatabaseBackendServer.java && \
+    echo '        try {' >> /app/DatabaseBackendServer.java && \
+    echo '            System.out.println("Initializing database connection...");' >> /app/DatabaseBackendServer.java && \
+    echo '            Class.forName("org.postgresql.Driver");' >> /app/DatabaseBackendServer.java && \
+    echo '            dbConnection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);' >> /app/DatabaseBackendServer.java && \
+    echo '            System.out.println("Database connection established successfully");' >> /app/DatabaseBackendServer.java && \
+    echo '        } catch (Exception e) {' >> /app/DatabaseBackendServer.java && \
+    echo '            System.err.println("Database connection failed: " + e.getMessage());' >> /app/DatabaseBackendServer.java && \
+    echo '            e.printStackTrace();' >> /app/DatabaseBackendServer.java && \
+    echo '        }' >> /app/DatabaseBackendServer.java && \
+    echo '    }' >> /app/DatabaseBackendServer.java && \
+    echo '    private static boolean checkDatabaseConnection() {' >> /app/DatabaseBackendServer.java && \
+    echo '        try {' >> /app/DatabaseBackendServer.java && \
+    echo '            return dbConnection != null && !dbConnection.isClosed();' >> /app/DatabaseBackendServer.java && \
+    echo '        } catch (Exception e) {' >> /app/DatabaseBackendServer.java && \
+    echo '            return false;' >> /app/DatabaseBackendServer.java && \
+    echo '        }' >> /app/DatabaseBackendServer.java && \
+    echo '    }' >> /app/DatabaseBackendServer.java && \
+    echo '    private static String getBaliseData() {' >> /app/DatabaseBackendServer.java && \
+    echo '        try {' >> /app/DatabaseBackendServer.java && \
+    echo '            if (dbConnection == null || dbConnection.isClosed()) {' >> /app/DatabaseBackendServer.java && \
+    echo '                return "{\"error\":\"Database not connected\",\"balises\":[],\"count\":0}";' >> /app/DatabaseBackendServer.java && \
+    echo '            }' >> /app/DatabaseBackendServer.java && \
+    echo '            StringBuilder json = new StringBuilder();' >> /app/DatabaseBackendServer.java && \
+    echo '            json.append("{\"balises\":[");' >> /app/DatabaseBackendServer.java && \
+    echo '            try (PreparedStatement stmt = dbConnection.prepareStatement("SELECT id, name, imei, type, status, battery_level, last_seen FROM balises ORDER BY id")) {' >> /app/DatabaseBackendServer.java && \
+    echo '                ResultSet rs = stmt.executeQuery();' >> /app/DatabaseBackendServer.java && \
+    echo '                boolean first = true;' >> /app/DatabaseBackendServer.java && \
+    echo '                while (rs.next()) {' >> /app/DatabaseBackendServer.java && \
+    echo '                    if (!first) json.append(",");' >> /app/DatabaseBackendServer.java && \
+    echo '                    json.append("{");' >> /app/DatabaseBackendServer.java && \
+    echo '                    json.append("\"id\":").append(rs.getInt("id")).append(",");' >> /app/DatabaseBackendServer.java && \
+    echo '                    json.append("\"name\":\"").append(rs.getString("name")).append("\",");' >> /app/DatabaseBackendServer.java && \
+    echo '                    json.append("\"imei\":\"").append(rs.getString("imei")).append("\",");' >> /app/DatabaseBackendServer.java && \
+    echo '                    json.append("\"type\":\"").append(rs.getString("type")).append("\",");' >> /app/DatabaseBackendServer.java && \
+    echo '                    json.append("\"status\":\"").append(rs.getString("status")).append("\",");' >> /app/DatabaseBackendServer.java && \
+    echo '                    json.append("\"batteryLevel\":").append(rs.getDouble("battery_level"));' >> /app/DatabaseBackendServer.java && \
+    echo '                    json.append("}");' >> /app/DatabaseBackendServer.java && \
+    echo '                    first = false;' >> /app/DatabaseBackendServer.java && \
+    echo '                }' >> /app/DatabaseBackendServer.java && \
+    echo '            }' >> /app/DatabaseBackendServer.java && \
+    echo '            json.append("],\"timestamp\":\"").append(LocalDateTime.now()).append("\"}");' >> /app/DatabaseBackendServer.java && \
+    echo '            return json.toString();' >> /app/DatabaseBackendServer.java && \
+    echo '        } catch (Exception e) {' >> /app/DatabaseBackendServer.java && \
+    echo '            System.err.println("Error fetching balise data: " + e.getMessage());' >> /app/DatabaseBackendServer.java && \
+    echo '            return "{\"error\":\"" + e.getMessage() + "\",\"balises\":[],\"count\":0}";' >> /app/DatabaseBackendServer.java && \
+    echo '        }' >> /app/DatabaseBackendServer.java && \
+    echo '    }' >> /app/DatabaseBackendServer.java && \
+    echo '    private static String sendBaliseCommand(String baliseId) {' >> /app/DatabaseBackendServer.java && \
+    echo '        // TODO: Integrate with LockSettingService for real command sending' >> /app/DatabaseBackendServer.java && \
+    echo '        return "{\"baliseId\":\"" + baliseId + "\",\"status\":\"command queued\",\"timestamp\":\"" + LocalDateTime.now() + "\"}";' >> /app/DatabaseBackendServer.java && \
+    echo '    }' >> /app/DatabaseBackendServer.java && \
+    echo '}' >> /app/DatabaseBackendServer.java
 
-# Compile the hybrid backend server (only standard Java libraries needed)
-RUN javac -cp "/app/lib/*" /app/HybridBackendServer.java
+# Compile the database-integrated backend server
+RUN javac -cp "/app/lib/*" /app/DatabaseBackendServer.java
 
-# Create startup script for hybrid backend
+# Create startup script for database backend
 RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo 'echo "==== HYBRID BACKEND SERVER: Starting at $(date) ===="' >> /app/start.sh && \
-    echo 'echo "==== Directory contents ===="' >> /app/start.sh && \
-    echo 'ls -la /app' >> /app/start.sh && \
-    echo 'echo "==== Lib directory contents ===="' >> /app/start.sh && \
-    echo 'ls -la /app/lib' >> /app/start.sh && \
-    echo 'echo "==== Starting Hybrid Backend with REST API and SDK Integration ===="' >> /app/start.sh && \
-    echo 'java -cp "/app/lib/*:/app" HybridBackendServer &' >> /app/start.sh && \
+    echo 'echo "==== DATABASE BACKEND SERVER: Starting at $(date) ===="' >> /app/start.sh && \
+    echo 'echo "==== Waiting for database to be ready ===="' >> /app/start.sh && \
+    echo 'sleep 15' >> /app/start.sh && \
+    echo 'echo "==== Starting Database Backend with REST API and SDK Integration ===="' >> /app/start.sh && \
+    echo 'java -cp "/app/lib/*:/app" DatabaseBackendServer &' >> /app/start.sh && \
     echo 'JAVA_PID=$!' >> /app/start.sh && \
-    echo 'echo "Hybrid Backend started with PID: $JAVA_PID"' >> /app/start.sh && \
+    echo 'echo "Database Backend started with PID: $JAVA_PID"' >> /app/start.sh && \
     echo 'sleep 10' >> /app/start.sh && \
     echo 'if kill -0 $JAVA_PID 2>/dev/null; then' >> /app/start.sh && \
-    echo '    echo "Hybrid Backend is running successfully"' >> /app/start.sh && \
-    echo '    echo "REST API should be active on port 8080"' >> /app/start.sh && \
+    echo '    echo "Database Backend is running successfully"' >> /app/start.sh && \
+    echo '    echo "REST API with database integration active on port 8080"' >> /app/start.sh && \
     echo 'else' >> /app/start.sh && \
-    echo '    echo "ERROR: Hybrid Backend failed to start"' >> /app/start.sh && \
-    echo '    echo "Checking for compilation errors..."' >> /app/start.sh && \
-    echo '    find /app -name "*.class" | head -10' >> /app/start.sh && \
+    echo '    echo "ERROR: Database Backend failed to start"' >> /app/start.sh && \
     echo 'fi' >> /app/start.sh && \
     echo 'echo "Keeping container alive for monitoring"' >> /app/start.sh && \
     echo 'while true; do' >> /app/start.sh && \
-    echo '    echo "HEARTBEAT: Hybrid Backend alive at $(date)"' >> /app/start.sh && \
+    echo '    echo "HEARTBEAT: Database Backend alive at $(date)"' >> /app/start.sh && \
     echo '    if ! kill -0 $JAVA_PID 2>/dev/null; then' >> /app/start.sh && \
     echo '        echo "ERROR: Java process died, restarting..."' >> /app/start.sh && \
-    echo '        java -cp "/app/lib/*:/app" HybridBackendServer &' >> /app/start.sh && \
+    echo '        java -cp "/app/lib/*:/app" DatabaseBackendServer &' >> /app/start.sh && \
     echo '        JAVA_PID=$!' >> /app/start.sh && \
     echo '    fi' >> /app/start.sh && \
     echo '    sleep 60' >> /app/start.sh && \
@@ -121,5 +174,5 @@ ENV SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
 # Expose port
 EXPOSE 8080
 
-# Run the hybrid backend application
+# Run the database-integrated backend application
 CMD ["/app/start.sh"]
