@@ -1,42 +1,34 @@
-# Single-stage build for debugging class loading
-FROM eclipse-temurin:17-jdk-alpine
+# Extreme debugging Dockerfile - No Java app, just shell script
+FROM alpine:latest
 WORKDIR /app
 
-# Install debugging tools
-RUN apk add --no-cache curl bash procps
+# Create directories for debugging
+RUN mkdir -p /app/classes/com/maxvision/backend /app/lib
 
-# Copy the source files
-COPY backend-service/src/main/java/com/maxvision/backend/MinimalBackendServer.java /app/src/MinimalBackendServer.java
-COPY backend-service/lib/*.jar /app/lib/
+# Create dummy Java class file
+RUN echo "dummy class" > /app/classes/com/maxvision/backend/MinimalBackendServer.class
 
-# Compile the Java class
-RUN mkdir -p /app/classes/com/maxvision/backend && \
-    javac -d /app/classes /app/src/MinimalBackendServer.java && \
-    mv /app/classes/*.class /app/classes/com/maxvision/backend/
+# Create dummy JAR file if needed
+RUN touch /app/lib/dummy.jar
 
-# Create enhanced startup script with better logging
+# Create extreme debug startup script
 RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo '# Ensure logs go to stdout/stderr for Portainer visibility' >> /app/start.sh && \
-    echo 'exec 1>/dev/stdout 2>/dev/stderr' >> /app/start.sh && \
-    echo 'echo "==== PORTAINER-DEBUG: Fleet SDK Backend Service starting at $(date) ====" ' >> /app/start.sh && \
-    echo 'echo "==== PORTAINER-DEBUG: Environment variables: ====" ' >> /app/start.sh && \
-    echo 'env | grep -v PASSWORD' >> /app/start.sh && \
-    echo 'echo "==== PORTAINER-DEBUG: Java version ====" ' >> /app/start.sh && \
-    echo 'java -version' >> /app/start.sh && \
-    echo 'echo "==== PORTAINER-DEBUG: Directory contents ====" ' >> /app/start.sh && \
-    echo 'ls -la /app' >> /app/start.sh && \
-    echo 'echo "==== PORTAINER-DEBUG: Starting application ====" ' >> /app/start.sh && \
-    echo 'java $JAVA_OPTS -cp "/app/classes:/app/lib/*" com.maxvision.backend.MinimalBackendServer &' >> /app/start.sh && \
-    echo 'JAVA_PID=$!' >> /app/start.sh && \
-    echo 'echo "Java process started with PID: $JAVA_PID"' >> /app/start.sh && \
-    echo 'sleep 5' >> /app/start.sh && \
-    echo 'if ps -p $JAVA_PID > /dev/null; then' >> /app/start.sh && \
-    echo '    echo "Java process is still running after 5 seconds"' >> /app/start.sh && \
-    echo 'else' >> /app/start.sh && \
-    echo '    echo "ERROR: Java process exited within 5 seconds"' >> /app/start.sh && \
-    echo 'fi' >> /app/start.sh && \
-    echo 'echo "Keeping container alive for logs and monitoring"' >> /app/start.sh && \
-    echo 'while true; do echo "HEARTBEAT: Backend alive at $(date)"; sleep 60; done' >> /app/start.sh && \
+    echo 'set -x' >> /app/start.sh && \
+    echo 'echo "==== EXTREME DEBUG: Starting debug session at $(date) ====" > /dev/stdout' >> /app/start.sh && \
+    echo 'echo "==== EXTREME DEBUG: Environment variables ====" > /dev/stdout' >> /app/start.sh && \
+    echo 'env > /dev/stdout' >> /app/start.sh && \
+    echo 'echo "==== EXTREME DEBUG: Directory structure ====" > /dev/stdout' >> /app/start.sh && \
+    echo 'find /app -type f | sort > /dev/stdout' >> /app/start.sh && \
+    echo 'echo "==== EXTREME DEBUG: App directory contents ====" > /dev/stdout' >> /app/start.sh && \
+    echo 'ls -la /app > /dev/stdout' >> /app/start.sh && \
+    echo 'echo "==== EXTREME DEBUG: Classes directory contents ====" > /dev/stdout' >> /app/start.sh && \
+    echo 'ls -la /app/classes > /dev/stdout' >> /app/start.sh && \
+    echo 'echo "==== EXTREME DEBUG: Backend directory contents ====" > /dev/stdout' >> /app/start.sh && \
+    echo 'ls -la /app/classes/com/maxvision/backend > /dev/stdout' >> /app/start.sh && \
+    echo 'echo "==== EXTREME DEBUG: Lib directory contents ====" > /dev/stdout' >> /app/start.sh && \
+    echo 'ls -la /app/lib > /dev/stdout' >> /app/start.sh && \
+    echo 'echo "==== EXTREME DEBUG: Keeping container alive ====" > /dev/stdout' >> /app/start.sh && \
+    echo 'while true; do echo "HEARTBEAT: $(date)" > /dev/stdout; sleep 30; done' >> /app/start.sh && \
     chmod +x /app/start.sh
 
 # Set Spring profile for backend
