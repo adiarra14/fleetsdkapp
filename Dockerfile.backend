@@ -12,11 +12,12 @@ COPY backend-service/lib/*.jar /app/lib/
 # Download PostgreSQL JDBC driver
 RUN wget -O /app/lib/postgresql.jar https://jdbc.postgresql.org/download/postgresql-42.7.2.jar
 
-# Copy the MinimalBackendServer source code
-COPY backend-service/src/main/java/com/maxvision/backend/MinimalBackendServer.java /app/
+# Copy the MinimalBackendServer source code with proper package structure
+COPY backend-service/src/main/java/com/maxvision/backend/MinimalBackendServer.java /app/com/maxvision/backend/
+RUN mkdir -p /app/com/maxvision/backend
 
 # Compile MinimalBackendServer with PostgreSQL driver in classpath
-RUN javac -cp "/app/lib/*" /app/MinimalBackendServer.java
+RUN javac -cp "/app/lib/*" /app/com/maxvision/backend/MinimalBackendServer.java
 
 # Create startup script for MinimalBackendServer
 RUN echo '#!/bin/sh' > /app/start.sh && \
@@ -24,7 +25,7 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'echo "==== Directory contents ===="' >> /app/start.sh && \
     echo 'ls -la /app' >> /app/start.sh && \
     echo 'echo "==== Starting MinimalBackendServer with Database Integration ===="' >> /app/start.sh && \
-    echo 'java -cp "/app/lib/*:/app" MinimalBackendServer &' >> /app/start.sh && \
+    echo 'java -cp "/app/lib/*:/app" com.maxvision.backend.MinimalBackendServer &' >> /app/start.sh && \
     echo 'JAVA_PID=$!' >> /app/start.sh && \
     echo 'echo "MinimalBackendServer started with PID: $JAVA_PID"' >> /app/start.sh && \
     echo 'sleep 5' >> /app/start.sh && \
