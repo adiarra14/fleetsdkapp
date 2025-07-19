@@ -8,7 +8,7 @@ services:
         - CACHE_BUST=2025-07-19-14-20
     container_name: balise-sdk-service
     ports:
-      - "7000:8080"
+      - "6062:8080"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://balise-postgres:5432/balisedb
       - SPRING_DATASOURCE_USERNAME=adminbdb
