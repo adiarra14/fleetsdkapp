@@ -2,6 +2,10 @@
 FROM alpine:latest
 WORKDIR /app
 
+# Cache-busting argument to force rebuild
+ARG CACHE_BUST=default
+RUN echo "Cache bust: $CACHE_BUST"
+
 # Create directories for debugging
 RUN mkdir -p /app/classes/com/maxvision/backend /app/lib
 

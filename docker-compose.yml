@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
+      args:
+        - CACHE_BUST=2025-07-19-13-56
     container_name: balise-sdk-service
     ports:
       - "7000:8080"
