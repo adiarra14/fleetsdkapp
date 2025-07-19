@@ -1,42 +1,69 @@
-# Working Java TCP server using built-in Java capabilities
-FROM eclipse-temurin:17-jdk-alpine
-WORKDIR /app
+# Spring Boot TCP server with Maxvision SDK integration
+FROM maven:3.8-eclipse-temurin-17-alpine AS build
 
 # Cache-busting argument to force rebuild
 ARG CACHE_BUST=default
 RUN echo "Cache bust: $CACHE_BUST"
 RUN echo "Force rebuild TCP server at $(date)"
 
-# Copy the SDK JAR file and PostgreSQL driver
-COPY tcp-server-service/lib/*.jar /app/lib/
+# Set the working directory
+WORKDIR /app
 
-# Download PostgreSQL JDBC driver
-RUN wget -O /app/lib/postgresql.jar https://jdbc.postgresql.org/download/postgresql-42.7.2.jar
+# Copy the POM file and lib directory first to leverage Docker cache
+COPY tcp-server-service/pom.xml .
+COPY tcp-server-service/lib/ ./lib/
 
-# Copy the MinimalTcpServer source code
-COPY tcp-server-service/src/main/java/com/maxvision/tcpserver/MinimalTcpServer.java /app/
+# Install the SDK JAR into local Maven repository
+RUN mvn install:install-file \
+    -Dfile=./lib/maxvision-edge-protocol-gateway-service-sdk.jar \
+    -DgroupId=com.maxvision \
+    -DartifactId=maxvision-edge-protocol-gateway-service-sdk \
+    -Dversion=1.0.0-SNAPSHOT \
+    -Dpackaging=jar \
+    -DgeneratePom=true
 
-# Compile MinimalTcpServer with PostgreSQL driver in classpath
-RUN javac -cp "/app/lib/*" /app/MinimalTcpServer.java
+# Copy the rest of the project source code
+COPY tcp-server-service/src ./src/
 
+# Build the application
+RUN mvn clean package -DskipTests
 
-# Create startup script for MinimalTcpServer
+# Runtime image
+FROM eclipse-temurin:17-jdk-alpine
+
+WORKDIR /app
+
+# Copy the built JAR file
+COPY --from=build /app/target/*.jar app.jar
+
+# Copy the lib directory with SDK JAR (needed at runtime)
+COPY tcp-server-service/lib/ ./lib/
+
+# Create startup script
 RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo 'echo "==== MINIMAL TCP SERVER: Starting at $(date) ===="' >> /app/start.sh && \
+    echo 'echo "==== BALISE TCP SERVER: Starting at $(date) ===="' >> /app/start.sh && \
     echo 'echo "==== Directory contents ===="' >> /app/start.sh && \
     echo 'ls -la /app' >> /app/start.sh && \
-    echo 'echo "==== Starting MinimalTcpServer with Database Integration ===="' >> /app/start.sh && \
-    echo 'java -cp "/app/lib/*:/app" MinimalTcpServer &' >> /app/start.sh && \
+    echo 'echo "==== Starting Balise TCP Server with SDK Integration ===="' >> /app/start.sh && \
+    echo 'java -Dloader.path=/app/lib -jar app.jar &' >> /app/start.sh && \
     echo 'JAVA_PID=$!' >> /app/start.sh && \
-    echo 'echo "MinimalTcpServer started with PID: $JAVA_PID"' >> /app/start.sh && \
+    echo 'echo "Balise TCP Server started with PID: $JAVA_PID"' >> /app/start.sh && \
     echo 'sleep 5' >> /app/start.sh && \
     echo 'if kill -0 $JAVA_PID 2>/dev/null; then' >> /app/start.sh && \
-    echo '    echo "MinimalTcpServer is running successfully"' >> /app/start.sh && \
+    echo '    echo "Balise TCP Server is running successfully"' >> /app/start.sh && \
     echo 'else' >> /app/start.sh && \
-    echo '    echo "ERROR: MinimalTcpServer failed to start"' >> /app/start.sh && \
+    echo '    echo "ERROR: Balise TCP Server failed to start"' >> /app/start.sh && \
     echo 'fi' >> /app/start.sh && \
     echo 'echo "Keeping container alive for monitoring"' >> /app/start.sh && \
-    echo 'while true; do echo "HEARTBEAT: MinimalTcpServer alive at $(date)"; sleep 60; done' >> /app/start.sh && \
+    echo 'while true; do' >> /app/start.sh && \
+    echo '    echo "HEARTBEAT: Balise TCP Server alive at $(date)"' >> /app/start.sh && \
+    echo '    if ! kill -0 $JAVA_PID 2>/dev/null; then' >> /app/start.sh && \
+    echo '        echo "ERROR: Java process died, restarting..."' >> /app/start.sh && \
+    echo '        java -Dloader.path=/app/lib -jar app.jar &' >> /app/start.sh && \
+    echo '        JAVA_PID=$!' >> /app/start.sh && \
+    echo '    fi' >> /app/start.sh && \
+    echo '    sleep 60' >> /app/start.sh && \
+    echo 'done' >> /app/start.sh && \
     chmod +x /app/start.sh
 
 # Set Spring profile for TCP server
@@ -48,5 +75,5 @@ ENV JAVA_OPTS="-Xmx256m -Xms128m"
 # Expose port
 EXPOSE 6060
 
-# Run the application using the wrapper script
+# Run the application
 CMD ["/app/start.sh"]
