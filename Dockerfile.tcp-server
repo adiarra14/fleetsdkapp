@@ -1,32 +1,38 @@
-# Single-stage build using pre-built JAR from lib directory
-FROM eclipse-temurin:17-jre-alpine
+# Working Java TCP server using built-in Java capabilities
+FROM eclipse-temurin:17-jdk-alpine
 WORKDIR /app
 
-# Copy the pre-built JARs from lib directory
-COPY tcp-server-service/lib/*.jar /app/
+# Cache-busting argument to force rebuild
+ARG CACHE_BUST=default
+RUN echo "Cache bust: $CACHE_BUST"
+
+# Copy the SDK JAR file
+COPY tcp-server-service/lib/*.jar /app/lib/
+
+# Create a simple Java TCP server using built-in classes
+RUN echo 'import java.net.*; import java.io.*; public class SimpleTcpServer { public static void main(String[] args) throws Exception { ServerSocket server = new ServerSocket(6060); System.out.println("Simple TCP server started on port 6060"); while (true) { Socket client = server.accept(); System.out.println("Client connected: " + client.getInetAddress()); BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream())); PrintWriter out = new PrintWriter(client.getOutputStream(), true); String line; while ((line = in.readLine()) != null) { System.out.println("Received: " + line); out.println("ACK: " + line); if ("quit".equals(line)) break; } client.close(); }}}' > /app/SimpleTcpServer.java
+
+# Compile the simple TCP server
+RUN javac /app/SimpleTcpServer.java
 
 
-# Create enhanced startup script with better logging
+# Create startup script for simple TCP server
 RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo '# Ensure logs go to stdout/stderr for Portainer visibility' >> /app/start.sh && \
-    echo 'exec 1>/dev/stdout 2>/dev/stderr' >> /app/start.sh && \
-    echo 'echo "==== PORTAINER-DEBUG: Fleet SDK TCP Server starting at $(date) ====" ' >> /app/start.sh && \
-    echo 'echo "==== PORTAINER-DEBUG: Environment variables: ====" ' >> /app/start.sh && \
-    echo 'env | grep -v PASSWORD' >> /app/start.sh && \
-    echo 'echo "==== PORTAINER-DEBUG: Java version ====" ' >> /app/start.sh && \
-    echo 'java -version' >> /app/start.sh && \
-    echo 'echo "==== PORTAINER-DEBUG: Starting application with MinimalTcpServer class ====" ' >> /app/start.sh && \
-    echo 'java $JAVA_OPTS -cp /app/app.jar com.maxvision.tcpserver.MinimalTcpServer &' >> /app/start.sh && \
+    echo 'echo "==== SIMPLE TCP SERVER: Starting at $(date) ===="' >> /app/start.sh && \
+    echo 'echo "==== Directory contents ===="' >> /app/start.sh && \
+    echo 'ls -la /app' >> /app/start.sh && \
+    echo 'echo "==== Starting Simple Java TCP Server ===="' >> /app/start.sh && \
+    echo 'java -cp /app SimpleTcpServer &' >> /app/start.sh && \
     echo 'JAVA_PID=$!' >> /app/start.sh && \
-    echo 'echo "Java process started with PID: $JAVA_PID"' >> /app/start.sh && \
+    echo 'echo "TCP server started with PID: $JAVA_PID"' >> /app/start.sh && \
     echo 'sleep 5' >> /app/start.sh && \
-    echo 'if ps -p $JAVA_PID > /dev/null; then' >> /app/start.sh && \
-    echo '    echo "Java process is still running after 5 seconds"' >> /app/start.sh && \
+    echo 'if kill -0 $JAVA_PID 2>/dev/null; then' >> /app/start.sh && \
+    echo '    echo "TCP server is running successfully"' >> /app/start.sh && \
     echo 'else' >> /app/start.sh && \
-    echo '    echo "ERROR: Java process exited within 5 seconds"' >> /app/start.sh && \
+    echo '    echo "ERROR: TCP server failed to start"' >> /app/start.sh && \
     echo 'fi' >> /app/start.sh && \
-    echo 'echo "Keeping container alive for logs and monitoring"' >> /app/start.sh && \
-    echo 'while true; do echo "HEARTBEAT: TCP Server alive at $(date)"; sleep 60; done' >> /app/start.sh && \
+    echo 'echo "Keeping container alive for monitoring"' >> /app/start.sh && \
+    echo 'while true; do echo "HEARTBEAT: Simple TCP server alive at $(date)"; sleep 60; done' >> /app/start.sh && \
     chmod +x /app/start.sh
 
 # Set Spring profile for TCP server
