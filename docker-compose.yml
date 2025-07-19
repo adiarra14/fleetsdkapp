@@ -32,7 +32,7 @@ services:
       context: .
       dockerfile: Dockerfile.tcp-server
       args:
-        - CACHE_BUST=2025-07-19-14-24
+        - CACHE_BUST=2025-07-19-14-32-FORCE-REBUILD
     container_name: balise-tcp-server
     ports:
       - "7003:6060"

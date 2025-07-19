@@ -5,6 +5,7 @@ WORKDIR /app
 # Cache-busting argument to force rebuild
 ARG CACHE_BUST=default
 RUN echo "Cache bust: $CACHE_BUST"
+RUN echo "Force rebuild TCP server at $(date)"
 
 # Copy the SDK JAR file
 COPY tcp-server-service/lib/*.jar /app/lib/
