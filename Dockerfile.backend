@@ -6,32 +6,35 @@ WORKDIR /app
 ARG CACHE_BUST=default
 RUN echo "Cache bust: $CACHE_BUST"
 
-# Copy the SDK JAR file
+# Copy the SDK JAR file and PostgreSQL driver
 COPY backend-service/lib/*.jar /app/lib/
 
-# Create a simple Java HTTP server using built-in classes
-RUN echo 'import com.sun.net.httpserver.*; import java.net.*; import java.io.*; public class SimpleServer { public static void main(String[] args) throws Exception { HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0); server.createContext("/", ex -> { String resp = "Fleet SDK Backend - Simple Server Running"; ex.sendResponseHeaders(200, resp.length()); ex.getResponseBody().write(resp.getBytes()); ex.close(); }); server.createContext("/health", ex -> { String resp = "OK"; ex.sendResponseHeaders(200, resp.length()); ex.getResponseBody().write(resp.getBytes()); ex.close(); }); server.start(); System.out.println("Simple HTTP server started on port 8080"); }}' > /app/SimpleServer.java
+# Download PostgreSQL JDBC driver
+RUN wget -O /app/lib/postgresql.jar https://jdbc.postgresql.org/download/postgresql-42.7.2.jar
 
-# Compile the simple server
-RUN javac /app/SimpleServer.java
+# Copy the MinimalBackendServer source code
+COPY backend-service/src/main/java/com/maxvision/backend/MinimalBackendServer.java /app/
 
-# Create startup script for simple Java server
+# Compile MinimalBackendServer with PostgreSQL driver in classpath
+RUN javac -cp "/app/lib/*" /app/MinimalBackendServer.java
+
+# Create startup script for MinimalBackendServer
 RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo 'echo "==== SIMPLE JAVA SERVER: Starting at $(date) ===="' >> /app/start.sh && \
+    echo 'echo "==== MINIMAL BACKEND SERVER: Starting at $(date) ===="' >> /app/start.sh && \
     echo 'echo "==== Directory contents ===="' >> /app/start.sh && \
     echo 'ls -la /app' >> /app/start.sh && \
-    echo 'echo "==== Starting Simple Java HTTP Server ===="' >> /app/start.sh && \
-    echo 'java -cp /app SimpleServer &' >> /app/start.sh && \
+    echo 'echo "==== Starting MinimalBackendServer with Database Integration ===="' >> /app/start.sh && \
+    echo 'java -cp "/app/lib/*:/app" MinimalBackendServer &' >> /app/start.sh && \
     echo 'JAVA_PID=$!' >> /app/start.sh && \
-    echo 'echo "Java server started with PID: $JAVA_PID"' >> /app/start.sh && \
+    echo 'echo "MinimalBackendServer started with PID: $JAVA_PID"' >> /app/start.sh && \
     echo 'sleep 5' >> /app/start.sh && \
     echo 'if kill -0 $JAVA_PID 2>/dev/null; then' >> /app/start.sh && \
-    echo '    echo "Java server is running successfully"' >> /app/start.sh && \
+    echo '    echo "MinimalBackendServer is running successfully"' >> /app/start.sh && \
     echo 'else' >> /app/start.sh && \
-    echo '    echo "ERROR: Java server failed to start"' >> /app/start.sh && \
+    echo '    echo "ERROR: MinimalBackendServer failed to start"' >> /app/start.sh && \
     echo 'fi' >> /app/start.sh && \
     echo 'echo "Keeping container alive for monitoring"' >> /app/start.sh && \
-    echo 'while true; do echo "HEARTBEAT: Simple server alive at $(date)"; sleep 60; done' >> /app/start.sh && \
+    echo 'while true; do echo "HEARTBEAT: MinimalBackendServer alive at $(date)"; sleep 60; done' >> /app/start.sh && \
     chmod +x /app/start.sh
 
 # Set Spring profile for backend

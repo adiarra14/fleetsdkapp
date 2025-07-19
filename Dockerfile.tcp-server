@@ -7,33 +7,36 @@ ARG CACHE_BUST=default
 RUN echo "Cache bust: $CACHE_BUST"
 RUN echo "Force rebuild TCP server at $(date)"
 
-# Copy the SDK JAR file
+# Copy the SDK JAR file and PostgreSQL driver
 COPY tcp-server-service/lib/*.jar /app/lib/
 
-# Create a simple Java TCP server using built-in classes
-RUN echo 'import java.net.*; import java.io.*; public class SimpleTcpServer { public static void main(String[] args) throws Exception { ServerSocket server = new ServerSocket(6060); System.out.println("Simple TCP server started on port 6060"); while (true) { Socket client = server.accept(); System.out.println("Client connected: " + client.getInetAddress()); BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream())); PrintWriter out = new PrintWriter(client.getOutputStream(), true); String line; while ((line = in.readLine()) != null) { System.out.println("Received: " + line); out.println("ACK: " + line); if ("quit".equals(line)) break; } client.close(); }}}' > /app/SimpleTcpServer.java
+# Download PostgreSQL JDBC driver
+RUN wget -O /app/lib/postgresql.jar https://jdbc.postgresql.org/download/postgresql-42.7.2.jar
 
-# Compile the simple TCP server
-RUN javac /app/SimpleTcpServer.java
+# Copy the MinimalTcpServer source code
+COPY tcp-server-service/src/main/java/com/maxvision/tcpserver/MinimalTcpServer.java /app/
+
+# Compile MinimalTcpServer with PostgreSQL driver in classpath
+RUN javac -cp "/app/lib/*" /app/MinimalTcpServer.java
 
 
-# Create startup script for simple TCP server
+# Create startup script for MinimalTcpServer
 RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo 'echo "==== SIMPLE TCP SERVER: Starting at $(date) ===="' >> /app/start.sh && \
+    echo 'echo "==== MINIMAL TCP SERVER: Starting at $(date) ===="' >> /app/start.sh && \
     echo 'echo "==== Directory contents ===="' >> /app/start.sh && \
     echo 'ls -la /app' >> /app/start.sh && \
-    echo 'echo "==== Starting Simple Java TCP Server ===="' >> /app/start.sh && \
-    echo 'java -cp /app SimpleTcpServer &' >> /app/start.sh && \
+    echo 'echo "==== Starting MinimalTcpServer with Database Integration ===="' >> /app/start.sh && \
+    echo 'java -cp "/app/lib/*:/app" MinimalTcpServer &' >> /app/start.sh && \
     echo 'JAVA_PID=$!' >> /app/start.sh && \
-    echo 'echo "TCP server started with PID: $JAVA_PID"' >> /app/start.sh && \
+    echo 'echo "MinimalTcpServer started with PID: $JAVA_PID"' >> /app/start.sh && \
     echo 'sleep 5' >> /app/start.sh && \
     echo 'if kill -0 $JAVA_PID 2>/dev/null; then' >> /app/start.sh && \
-    echo '    echo "TCP server is running successfully"' >> /app/start.sh && \
+    echo '    echo "MinimalTcpServer is running successfully"' >> /app/start.sh && \
     echo 'else' >> /app/start.sh && \
-    echo '    echo "ERROR: TCP server failed to start"' >> /app/start.sh && \
+    echo '    echo "ERROR: MinimalTcpServer failed to start"' >> /app/start.sh && \
     echo 'fi' >> /app/start.sh && \
     echo 'echo "Keeping container alive for monitoring"' >> /app/start.sh && \
-    echo 'while true; do echo "HEARTBEAT: Simple TCP server alive at $(date)"; sleep 60; done' >> /app/start.sh && \
+    echo 'while true; do echo "HEARTBEAT: MinimalTcpServer alive at $(date)"; sleep 60; done' >> /app/start.sh && \
     chmod +x /app/start.sh
 
 # Set Spring profile for TCP server
