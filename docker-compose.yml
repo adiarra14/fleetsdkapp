@@ -35,7 +35,7 @@ services:
         - CACHE_BUST=2025-07-19-14-32-FORCE-REBUILD
     container_name: balise-tcp-server
     ports:
-      - "7003:6060"
+      - "6060:6060"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://balise-postgres:5432/balisedb
       - SPRING_DATASOURCE_USERNAME=adminbdb
