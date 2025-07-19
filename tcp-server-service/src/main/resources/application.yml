@@ -1,0 +1,32 @@
+# Server configuration
+server:
+  port: 6060
+
+# Spring configuration
+spring:
+  application:
+    name: balise-tcp-server
+  profiles:
+    active: dev
+
+# Maxvision Gateway SDK configuration
+mvgateway:
+  servers:
+    - port: 6060           # Port on which the SDK listens for balise connections
+      encrypt: false       # Set to false for unencrypted communication (typical for initial setup)
+      name: maxvision      # Application name (must remain "maxvision" as per SDK docs)
+
+# Database Configuration
+spring.datasource:
+  url: jdbc:postgresql://balise-postgres:5432/balisedb
+  username: adminbdb
+  password: To7Z2UCeWTsriPxbADX8
+  driver-class-name: org.postgresql.Driver
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.maxvision: DEBUG
+    org.springframework.web: INFO
+    org.hibernate: INFO
