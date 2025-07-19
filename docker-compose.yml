@@ -64,7 +64,7 @@ services:
     image: postgis/postgis:14-3.3
     container_name: balise-postgres
     ports:
-      - "5433:5432"
+      - "6063:5432"
     environment:
       POSTGRES_DB: balisedb
       POSTGRES_USER: adminbdb
