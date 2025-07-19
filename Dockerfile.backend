@@ -1,47 +1,18 @@
-# Build stage
-FROM eclipse-temurin:17-jdk-alpine AS build
+# Single-stage build for debugging class loading
+FROM eclipse-temurin:17-jdk-alpine
 WORKDIR /app
 
-# Install Maven
-RUN apk add --no-cache maven
+# Install debugging tools
+RUN apk add --no-cache curl bash procps
 
-# Copy only the necessary files to compile MinimalBackendServer
-COPY backend-service/src/main/java/com/maxvision/backend/MinimalBackendServer.java /app/src/main/java/com/maxvision/backend/
+# Copy the source files
+COPY backend-service/src/main/java/com/maxvision/backend/MinimalBackendServer.java /app/src/MinimalBackendServer.java
 COPY backend-service/lib/*.jar /app/lib/
 
-# Create a minimal pom.xml to compile MinimalBackendServer
-RUN echo '<?xml version="1.0" encoding="UTF-8"?>' > pom.xml && \
-    echo '<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">' >> pom.xml && \
-    echo '  <modelVersion>4.0.0</modelVersion>' >> pom.xml && \
-    echo '  <groupId>com.maxvision</groupId>' >> pom.xml && \
-    echo '  <artifactId>backend</artifactId>' >> pom.xml && \
-    echo '  <version>1.0.0</version>' >> pom.xml && \
-    echo '  <properties>' >> pom.xml && \
-    echo '    <maven.compiler.source>17</maven.compiler.source>' >> pom.xml && \
-    echo '    <maven.compiler.target>17</maven.compiler.target>' >> pom.xml && \
-    echo '  </properties>' >> pom.xml && \
-    echo '  <dependencies>' >> pom.xml && \
-    echo '    <dependency>' >> pom.xml && \
-    echo '      <groupId>maxvision</groupId>' >> pom.xml && \
-    echo '      <artifactId>sdk</artifactId>' >> pom.xml && \
-    echo '      <version>1.0</version>' >> pom.xml && \
-    echo '      <scope>system</scope>' >> pom.xml && \
-    echo '      <systemPath>/app/lib/maxvision-edge-protocol-gateway-service-sdk.jar</systemPath>' >> pom.xml && \
-    echo '    </dependency>' >> pom.xml && \
-    echo '  </dependencies>' >> pom.xml && \
-    echo '</project>' >> pom.xml
-
-# Compile MinimalBackendServer
-RUN mkdir -p /app/target/classes && \
-    javac -cp "/app/lib/*" -d /app/target/classes src/main/java/com/maxvision/backend/MinimalBackendServer.java
-
-# Runtime stage
-FROM eclipse-temurin:17-jre-alpine
-WORKDIR /app
-
-# Copy compiled classes and libs from build stage
-COPY --from=build /app/target/classes /app/classes
-COPY --from=build /app/lib/*.jar /app/lib/
+# Compile the Java class
+RUN mkdir -p /app/classes/com/maxvision/backend && \
+    javac -d /app/classes /app/src/MinimalBackendServer.java && \
+    mv /app/classes/*.class /app/classes/com/maxvision/backend/
 
 # Create enhanced startup script with better logging
 RUN echo '#!/bin/sh' > /app/start.sh && \
