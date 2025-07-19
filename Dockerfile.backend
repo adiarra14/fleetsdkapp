@@ -1,19 +1,9 @@
-# Build stage
-FROM maven:3.8-eclipse-temurin-17 AS build
-WORKDIR /app
-
-# Copy the backend service directory
-COPY backend-service /app/backend-service
-
-# Build the application with Maven
-RUN cd backend-service && mvn clean package
-
-# Runtime stage
+# Single-stage build using pre-built JAR from lib directory
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Copy the compiled JAR and SDK library from the build stage
-COPY --from=build /app/backend-service/target/*.jar /app/app.jar
+# Copy the pre-built JARs from lib directory
+COPY backend-service/lib/*.jar /app/
 
 
 # Create enhanced startup script with better logging

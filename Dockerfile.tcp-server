@@ -1,19 +1,9 @@
-# Build stage
-FROM maven:3.8-eclipse-temurin-17 AS build
-WORKDIR /app
-
-# Copy the TCP server service directory
-COPY tcp-server-service /app/tcp-server-service
-
-# Build the application with Maven
-RUN cd tcp-server-service && mvn clean package
-
-# Runtime stage
+# Single-stage build using pre-built JAR from lib directory
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Copy the compiled JAR and SDK library from the build stage
-COPY --from=build /app/tcp-server-service/target/*.jar /app/app.jar
+# Copy the pre-built JARs from lib directory
+COPY tcp-server-service/lib/*.jar /app/
 
 
 # Create enhanced startup script with better logging
