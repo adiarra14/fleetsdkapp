@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile.backend
       args:
-        - CACHE_BUST=2025-07-19-14-20
+        - CACHE_BUST=2025-07-19-22-10-REAL-BALISE
     container_name: balise-sdk-service
     ports:
       - "6062:8080"
@@ -32,7 +32,7 @@ services:
       context: .
       dockerfile: Dockerfile.tcp-server
       args:
-        - CACHE_BUST=2025-07-19-14-32-FORCE-REBUILD
+        - CACHE_BUST=2025-07-19-22-10-REAL-BALISE-TCP
     container_name: balise-tcp-server
     ports:
       - "6060:6060"
