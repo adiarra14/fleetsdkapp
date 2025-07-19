@@ -25,7 +25,7 @@ COPY tcp-server-service/src/main/java/ /app/src/main/java/
 COPY tcp-server-service/src/main/resources/ /app/src/main/resources/
 
 # Create a simple standalone Java application that doesn't require Spring Boot compilation
-RUN echo 'package com.maxvision.tcpserver;' > /app/SimpleTcpServerLauncher.java && \
+RUN echo '// Simple TCP Server Launcher - No package declaration' > /app/SimpleTcpServerLauncher.java && \
     echo 'import java.io.*;' >> /app/SimpleTcpServerLauncher.java && \
     echo 'import java.net.*;' >> /app/SimpleTcpServerLauncher.java && \
     echo 'import java.util.concurrent.*;' >> /app/SimpleTcpServerLauncher.java && \
