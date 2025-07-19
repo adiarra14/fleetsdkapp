@@ -1,105 +1,92 @@
-# Robust TCP server using pre-built JAR approach without compilation
+# Spring Boot TCP server with full Maxvision SDK integration
 FROM eclipse-temurin:17-jdk-alpine
 
 # Cache-busting argument to force rebuild
 ARG CACHE_BUST=default
 RUN echo "Cache bust: $CACHE_BUST"
-RUN echo "Force rebuild TCP server at $(date)"
+RUN echo "Force rebuild TCP server with Spring Boot at $(date)"
 
 WORKDIR /app
 
 # Copy the SDK JAR and dependencies
 COPY tcp-server-service/lib/*.jar /app/lib/
 
-# Download additional required JARs for Spring Boot application
-RUN wget -O /app/lib/spring-boot-starter-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter/2.7.0/spring-boot-starter-2.7.0.jar || echo "Spring Boot starter download failed"
-RUN wget -O /app/lib/spring-boot-starter-web-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter-web/2.7.0/spring-boot-starter-web-2.7.0.jar || echo "Spring Boot web starter download failed"
-RUN wget -O /app/lib/postgresql.jar https://jdbc.postgresql.org/download/postgresql-42.7.2.jar || echo "PostgreSQL driver download failed"
-RUN wget -O /app/lib/lombok-1.18.24.jar https://repo1.maven.org/maven2/org/projectlombok/lombok/1.18.24/lombok-1.18.24.jar || echo "Lombok download failed"
-RUN wget -O /app/lib/jackson-databind-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.13.3/jackson-databind-2.13.3.jar || echo "Jackson databind download failed"
-RUN wget -O /app/lib/jackson-core-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.13.3/jackson-core-2.13.3.jar || echo "Jackson core download failed"
-RUN wget -O /app/lib/jackson-annotations-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.13.3/jackson-annotations-2.13.3.jar || echo "Jackson annotations download failed"
+# Download additional required JARs for Spring Boot application (ignore errors if no internet)
+RUN wget -O /app/lib/spring-boot-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot/2.7.0/spring-boot-2.7.0.jar || echo "Spring Boot download failed, using existing"
+RUN wget -O /app/lib/spring-context-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-context/5.3.21/spring-context-5.3.21.jar || echo "Spring Context download failed, using existing"
+RUN wget -O /app/lib/spring-web-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-web/5.3.21/spring-web-5.3.21.jar || echo "Spring Web download failed, using existing"
+RUN wget -O /app/lib/postgresql.jar https://jdbc.postgresql.org/download/postgresql-42.7.2.jar || echo "PostgreSQL driver download failed, using existing"
 
-# Copy source files
+# Copy all source files with proper package structure
 COPY tcp-server-service/src/main/java/ /app/src/main/java/
 COPY tcp-server-service/src/main/resources/ /app/src/main/resources/
 
-# Create a simple standalone Java application that doesn't require Spring Boot compilation
-RUN echo '// Simple TCP Server Launcher - No package declaration' > /app/SimpleTcpServerLauncher.java && \
-    echo 'import java.io.*;' >> /app/SimpleTcpServerLauncher.java && \
-    echo 'import java.net.*;' >> /app/SimpleTcpServerLauncher.java && \
-    echo 'import java.util.concurrent.*;' >> /app/SimpleTcpServerLauncher.java && \
-    echo 'public class SimpleTcpServerLauncher {' >> /app/SimpleTcpServerLauncher.java && \
-    echo '    public static void main(String[] args) throws Exception {' >> /app/SimpleTcpServerLauncher.java && \
-    echo '        System.out.println("=== BALISE TCP SERVER: Starting at " + new java.util.Date() + " ===");' >> /app/SimpleTcpServerLauncher.java && \
-    echo '        System.out.println("=== SDK Integration Ready ===");' >> /app/SimpleTcpServerLauncher.java && \
-    echo '        ServerSocket serverSocket = new ServerSocket(6060);' >> /app/SimpleTcpServerLauncher.java && \
-    echo '        System.out.println("=== TCP Server listening on port 6060 ===");' >> /app/SimpleTcpServerLauncher.java && \
-    echo '        ExecutorService executor = Executors.newFixedThreadPool(10);' >> /app/SimpleTcpServerLauncher.java && \
-    echo '        while (true) {' >> /app/SimpleTcpServerLauncher.java && \
-    echo '            try {' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                Socket clientSocket = serverSocket.accept();' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                System.out.println("New connection from " + clientSocket.getInetAddress());' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                executor.submit(() -> {' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                         PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true)) {' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                        String line;' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                        while ((line = reader.readLine()) != null) {' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                            System.out.println("[BALISE] Received: " + line);' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                            writer.println("ACK");' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                        }' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                    } catch (Exception e) {' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                        System.err.println("Connection error: " + e.getMessage());' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                    } finally {' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                        try { clientSocket.close(); } catch (Exception e) {}' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                    }' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                });' >> /app/SimpleTcpServerLauncher.java && \
-    echo '            } catch (Exception e) {' >> /app/SimpleTcpServerLauncher.java && \
-    echo '                System.err.println("Server error: " + e.getMessage());' >> /app/SimpleTcpServerLauncher.java && \
-    echo '            }' >> /app/SimpleTcpServerLauncher.java && \
-    echo '        }' >> /app/SimpleTcpServerLauncher.java && \
-    echo '    }' >> /app/SimpleTcpServerLauncher.java && \
-    echo '}' >> /app/SimpleTcpServerLauncher.java
+# Create proper package directories
+RUN mkdir -p /app/classes/com/maxvision/tcpserver/service
+RUN mkdir -p /app/classes/com/maxvision/tcpserver/config
 
-# Compile the simple launcher (no external dependencies needed)
-RUN javac /app/SimpleTcpServerLauncher.java
+# Compile all Java classes with full classpath
+RUN javac -cp "/app/lib/*" -d /app/classes \
+    /app/src/main/java/com/maxvision/tcpserver/TcpServerApplication.java \
+    /app/src/main/java/com/maxvision/tcpserver/service/BaliseReportServiceImpl.java \
+    /app/src/main/java/com/maxvision/tcpserver/service/BaliseCommandServiceImpl.java \
+    /app/src/main/java/com/maxvision/tcpserver/config/GlobalExceptionHandler.java
 
-# Create startup script that uses the simple launcher for now
+# Copy resources to classes directory
+RUN cp -r /app/src/main/resources/* /app/classes/ 2>/dev/null || echo "No resources to copy"
+
+# Create a manifest file for the Spring Boot JAR
+RUN echo "Main-Class: com.maxvision.tcpserver.TcpServerApplication" > /app/manifest.txt && \
+    echo "Class-Path: $(find /app/lib -name "*.jar" -printf "lib/%f ")" >> /app/manifest.txt
+
+# Create the Spring Boot application JAR
+RUN cd /app && jar cfm tcp-server-springboot.jar manifest.txt -C classes .
+
+# Create startup script for Spring Boot application
 RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo 'echo "==== BALISE TCP SERVER: Starting at $(date) ===="' >> /app/start.sh && \
+    echo 'echo "==== SPRING BOOT TCP SERVER: Starting at $(date) ===="' >> /app/start.sh && \
     echo 'echo "==== Directory contents ===="' >> /app/start.sh && \
     echo 'ls -la /app' >> /app/start.sh && \
     echo 'echo "==== Lib directory contents ===="' >> /app/start.sh && \
     echo 'ls -la /app/lib' >> /app/start.sh && \
-    echo 'echo "==== Starting Simple TCP Server (SDK Integration Ready) ===="' >> /app/start.sh && \
-    echo 'java -cp "/app/lib/*:/app" SimpleTcpServerLauncher &' >> /app/start.sh && \
+    echo 'echo "==== Starting Spring Boot TCP Server with Full SDK Integration ===="' >> /app/start.sh && \
+    echo 'java -cp "/app/lib/*:/app/tcp-server-springboot.jar" -Dspring.profiles.active=tcp-server com.maxvision.tcpserver.TcpServerApplication &' >> /app/start.sh && \
     echo 'JAVA_PID=$!' >> /app/start.sh && \
-    echo 'echo "TCP Server started with PID: $JAVA_PID"' >> /app/start.sh && \
-    echo 'sleep 5' >> /app/start.sh && \
+    echo 'echo "Spring Boot TCP Server started with PID: $JAVA_PID"' >> /app/start.sh && \
+    echo 'sleep 10' >> /app/start.sh && \
     echo 'if kill -0 $JAVA_PID 2>/dev/null; then' >> /app/start.sh && \
-    echo '    echo "TCP Server is running successfully"' >> /app/start.sh && \
+    echo '    echo "Spring Boot TCP Server is running successfully"' >> /app/start.sh && \
+    echo '    echo "SDK Protocol Gateway should be active on port 6060"' >> /app/start.sh && \
     echo 'else' >> /app/start.sh && \
-    echo '    echo "ERROR: TCP Server failed to start"' >> /app/start.sh && \
+    echo '    echo "ERROR: Spring Boot TCP Server failed to start"' >> /app/start.sh && \
+    echo '    echo "Checking for compilation errors..."' >> /app/start.sh && \
+    echo '    find /app/classes -name "*.class" | head -10' >> /app/start.sh && \
     echo 'fi' >> /app/start.sh && \
     echo 'echo "Keeping container alive for monitoring"' >> /app/start.sh && \
     echo 'while true; do' >> /app/start.sh && \
-    echo '    echo "HEARTBEAT: TCP Server alive at $(date)"' >> /app/start.sh && \
+    echo '    echo "HEARTBEAT: Spring Boot TCP Server alive at $(date)"' >> /app/start.sh && \
     echo '    if ! kill -0 $JAVA_PID 2>/dev/null; then' >> /app/start.sh && \
     echo '        echo "ERROR: Java process died, restarting..."' >> /app/start.sh && \
-    echo '        java -cp "/app/lib/*:/app" SimpleTcpServerLauncher &' >> /app/start.sh && \
+    echo '        java -cp "/app/lib/*:/app/tcp-server-springboot.jar" -Dspring.profiles.active=tcp-server com.maxvision.tcpserver.TcpServerApplication &' >> /app/start.sh && \
     echo '        JAVA_PID=$!' >> /app/start.sh && \
     echo '    fi' >> /app/start.sh && \
     echo '    sleep 60' >> /app/start.sh && \
     echo 'done' >> /app/start.sh && \
     chmod +x /app/start.sh
 
-# Set environment variables
+# Set Spring Boot environment variables
+ENV SPRING_PROFILES_ACTIVE=tcp-server
 ENV SERVER_PORT=6060
 ENV TCP_SERVER_PORT=6060
-ENV JAVA_OPTS="-Xmx256m -Xms128m"
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
+
+# Database connection environment variables
+ENV SPRING_DATASOURCE_URL=jdbc:postgresql://balise-postgres:5432/balisedb
+ENV SPRING_DATASOURCE_USERNAME=adminbdb
+ENV SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
 
 # Expose port
 EXPOSE 6060
 
-# Run the application
+# Run the Spring Boot application
 CMD ["/app/start.sh"]
