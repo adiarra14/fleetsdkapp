@@ -1,38 +1,37 @@
-# Extreme debugging Dockerfile - No Java app, just shell script
-FROM alpine:latest
+# Working Java HTTP server using built-in Java capabilities
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
 # Cache-busting argument to force rebuild
 ARG CACHE_BUST=default
 RUN echo "Cache bust: $CACHE_BUST"
 
-# Create directories for debugging
-RUN mkdir -p /app/classes/com/maxvision/backend /app/lib
+# Copy the SDK JAR file
+COPY backend-service/lib/*.jar /app/lib/
 
-# Create dummy Java class file
-RUN echo "dummy class" > /app/classes/com/maxvision/backend/MinimalBackendServer.class
+# Create a simple Java HTTP server using built-in classes
+RUN echo 'import com.sun.net.httpserver.*; import java.net.*; import java.io.*; public class SimpleServer { public static void main(String[] args) throws Exception { HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0); server.createContext("/", ex -> { String resp = "Fleet SDK Backend - Simple Server Running"; ex.sendResponseHeaders(200, resp.length()); ex.getResponseBody().write(resp.getBytes()); ex.close(); }); server.createContext("/health", ex -> { String resp = "OK"; ex.sendResponseHeaders(200, resp.length()); ex.getResponseBody().write(resp.getBytes()); ex.close(); }); server.start(); System.out.println("Simple HTTP server started on port 8080"); }}' > /app/SimpleServer.java
 
-# Create dummy JAR file if needed
-RUN touch /app/lib/dummy.jar
+# Compile the simple server
+RUN javac /app/SimpleServer.java
 
-# Create extreme debug startup script
+# Create startup script for simple Java server
 RUN echo '#!/bin/sh' > /app/start.sh && \
-    echo 'set -x' >> /app/start.sh && \
-    echo 'echo "==== EXTREME DEBUG: Starting debug session at $(date) ====" > /dev/stdout' >> /app/start.sh && \
-    echo 'echo "==== EXTREME DEBUG: Environment variables ====" > /dev/stdout' >> /app/start.sh && \
-    echo 'env > /dev/stdout' >> /app/start.sh && \
-    echo 'echo "==== EXTREME DEBUG: Directory structure ====" > /dev/stdout' >> /app/start.sh && \
-    echo 'find /app -type f | sort > /dev/stdout' >> /app/start.sh && \
-    echo 'echo "==== EXTREME DEBUG: App directory contents ====" > /dev/stdout' >> /app/start.sh && \
-    echo 'ls -la /app > /dev/stdout' >> /app/start.sh && \
-    echo 'echo "==== EXTREME DEBUG: Classes directory contents ====" > /dev/stdout' >> /app/start.sh && \
-    echo 'ls -la /app/classes > /dev/stdout' >> /app/start.sh && \
-    echo 'echo "==== EXTREME DEBUG: Backend directory contents ====" > /dev/stdout' >> /app/start.sh && \
-    echo 'ls -la /app/classes/com/maxvision/backend > /dev/stdout' >> /app/start.sh && \
-    echo 'echo "==== EXTREME DEBUG: Lib directory contents ====" > /dev/stdout' >> /app/start.sh && \
-    echo 'ls -la /app/lib > /dev/stdout' >> /app/start.sh && \
-    echo 'echo "==== EXTREME DEBUG: Keeping container alive ====" > /dev/stdout' >> /app/start.sh && \
-    echo 'while true; do echo "HEARTBEAT: $(date)" > /dev/stdout; sleep 30; done' >> /app/start.sh && \
+    echo 'echo "==== SIMPLE JAVA SERVER: Starting at $(date) ===="' >> /app/start.sh && \
+    echo 'echo "==== Directory contents ===="' >> /app/start.sh && \
+    echo 'ls -la /app' >> /app/start.sh && \
+    echo 'echo "==== Starting Simple Java HTTP Server ===="' >> /app/start.sh && \
+    echo 'java -cp /app SimpleServer &' >> /app/start.sh && \
+    echo 'JAVA_PID=$!' >> /app/start.sh && \
+    echo 'echo "Java server started with PID: $JAVA_PID"' >> /app/start.sh && \
+    echo 'sleep 5' >> /app/start.sh && \
+    echo 'if kill -0 $JAVA_PID 2>/dev/null; then' >> /app/start.sh && \
+    echo '    echo "Java server is running successfully"' >> /app/start.sh && \
+    echo 'else' >> /app/start.sh && \
+    echo '    echo "ERROR: Java server failed to start"' >> /app/start.sh && \
+    echo 'fi' >> /app/start.sh && \
+    echo 'echo "Keeping container alive for monitoring"' >> /app/start.sh && \
+    echo 'while true; do echo "HEARTBEAT: Simple server alive at $(date)"; sleep 60; done' >> /app/start.sh && \
     chmod +x /app/start.sh
 
 # Set Spring profile for backend
