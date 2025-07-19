@@ -34,7 +34,8 @@ RUN echo '// Hybrid TCP Server with SDK Integration' > /app/HybridTcpServer.java
     echo '        System.out.println("=== HYBRID TCP SERVER: Starting at " + LocalDateTime.now() + " ===");' >> /app/HybridTcpServer.java && \
     echo '        System.out.println("=== SDK Integration Ready ===");' >> /app/HybridTcpServer.java && \
     echo '        // Start HTTP health endpoint' >> /app/HybridTcpServer.java && \
-    echo '        HttpServer httpServer = HttpServer.create(new InetSocketAddress(6060), 0);' >> /app/HybridTcpServer.java && \
+    echo '        // Start HTTP health endpoint on different port' >> /app/HybridTcpServer.java && \
+    echo '        HttpServer httpServer = HttpServer.create(new InetSocketAddress(8080), 0);' >> /app/HybridTcpServer.java && \
     echo '        httpServer.createContext("/health", exchange -> {' >> /app/HybridTcpServer.java && \
     echo '            String response = "TCP Server with SDK Integration - " + LocalDateTime.now();' >> /app/HybridTcpServer.java && \
     echo '            exchange.sendResponseHeaders(200, response.getBytes().length);' >> /app/HybridTcpServer.java && \
