@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.maxvision.edge.gateway.sdk.config.LockSdkConfig,\
+  com.maxvision.edge.gateway.lock.netty.LockChannelInitializer,\
+  com.maxvision.edge.gateway.sdk.config.yml.PortDefinition,\
+  com.maxvision.edge.gateway.sdk.config.yml.PortDefinitionProperty

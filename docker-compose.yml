@@ -48,14 +48,14 @@ services:
       - balise-postgres
       - balise-sdk-service
 
-  # Frontend service using pre-built image
+  # Enhanced Fleet Monitor Web UI
   frontend:
-    image: adiarra/ynnov-docker:fleet-frontend-latest
+    build:
+      context: ./web-ui
+      dockerfile: Dockerfile
     container_name: balise-web-ui
     ports:
       - "6061:80"
-    environment:
-      - REACT_APP_API_URL=http://balise-sdk-service:8080/api
     depends_on:
       - balise-sdk-service
 

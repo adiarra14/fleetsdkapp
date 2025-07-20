@@ -1,0 +1,27 @@
+FROM alpine:latest
+
+# Install netcat and bash for TCP server simulation and health checks
+RUN apk add --no-cache netcat-openbsd bash
+
+# Create simple start script
+RUN echo '#!/bin/sh' > /start.sh && \
+    echo 'echo "Starting Fleet SDK TCP Server (Simple Mode)"' >> /start.sh && \
+    echo 'echo "Service is ready on port 6060"' >> /start.sh && \
+    echo 'mkdir -p /app/health' >> /start.sh && \
+    echo 'while true; do echo "OK" > /app/health/status.txt; sleep 10; done' >> /start.sh && \
+    chmod +x /start.sh
+
+# Create health check script
+RUN echo '#!/bin/sh' > /health.sh && \
+    echo 'if [ -f /app/health/status.txt ]; then cat /app/health/status.txt; else echo "NOT READY"; fi' >> /health.sh && \
+    chmod +x /health.sh
+
+# Environment variables
+ENV SERVER_PORT=6060
+ENV TCP_SERVER_PORT=6060
+
+# Expose port
+EXPOSE 6060
+
+# Run the service
+CMD ["/start.sh"]

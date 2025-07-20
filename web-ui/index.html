@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Monitor - Balise Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e74c3c;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #27ae60;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .balises-table {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .refresh-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #2980b9;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .battery-bar {
+            width: 60px;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .battery-fill {
+            height: 100%;
+            background: #27ae60;
+            transition: width 0.3s;
+        }
+
+        .battery-fill.low {
+            background: #e74c3c;
+        }
+
+        .battery-fill.medium {
+            background: #f39c12;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .last-updated {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+            text-align: right;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .table {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚛 Fleet Monitor - Balise Management System</h1>
+        <div class="status-indicator">
+            <div class="status-dot" id="connectionStatus"></div>
+            <span id="connectionText">Connecting...</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Dashboard Stats -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>📍 Total Balises</h3>
+                <div class="stat-number" id="totalBalises">-</div>
+                <div class="stat-label">GPS Tracking Devices</div>
+            </div>
+            <div class="card">
+                <h3>✅ Active Balises</h3>
+                <div class="stat-number" id="activeBalises">-</div>
+                <div class="stat-label">Currently Online</div>
+            </div>
+            <div class="card">
+                <h3>📊 Recent Events</h3>
+                <div class="stat-number" id="recentEvents">-</div>
+                <div class="stat-label">Last 24 Hours</div>
+            </div>
+        </div>
+
+        <!-- Balises Table -->
+        <div class="balises-table">
+            <div class="table-header">
+                <h3>🗺️ Balise Fleet Status</h3>
+                <button class="refresh-btn" onclick="refreshData()">🔄 Refresh</button>
+            </div>
+            
+            <div id="loadingMessage" class="loading">Loading balise data...</div>
+            <div id="errorMessage" class="error" style="display: none;"></div>
+            
+            <table class="table" id="balisesTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>IMEI</th>
+                        <th>Status</th>
+                        <th>Battery</th>
+                        <th>Last Seen</th>
+                        <th>Location</th>
+                        <th>Events (24h)</th>
+                    </tr>
+                </thead>
+                <tbody id="balisesTableBody">
+                </tbody>
+            </table>
+            
+            <div class="last-updated" id="lastUpdated"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:6062/api';
+        let connectionStatus = false;
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Fleet Monitor UI initialized');
+            loadDashboardData();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadDashboardData, 30000);
+        });
+
+        // Load all dashboard data
+        async function loadDashboardData() {
+            try {
+                await Promise.all([
+                    loadSystemStatus(),
+                    loadBalises()
+                ]);
+                updateConnectionStatus(true);
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+                updateConnectionStatus(false);
+                showError('Failed to connect to backend API. Please check if the backend service is running.');
+            }
+        }
+
+        // Load system status and statistics
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/status`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // Update dashboard stats
+                    const statusCounts = data.baliseStatusCounts || {};
+                    const totalBalises = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
+                    const activeBalises = statusCounts['ACTIVE'] || 0;
+                    
+                    document.getElementById('totalBalises').textContent = totalBalises;
+                    document.getElementById('activeBalises').textContent = activeBalises;
+                    document.getElementById('recentEvents').textContent = data.recentEvents || 0;
+                }
+            } catch (error) {
+                console.error('Failed to load system status:', error);
+                throw error;
+            }
+        }
+
+        // Load balises data
+        async function loadBalises() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/balises`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    displayBalises(data.balises || []);
+                    hideLoading();
+                    document.getElementById('lastUpdated').textContent = 
+                        `Last updated: ${new Date().toLocaleString()}`;
+                } else {
+                    throw new Error(data.error || 'Failed to load balises');
+                }
+            } catch (error) {
+                console.error('Failed to load balises:', error);
+                throw error;
+            }
+        }
+
+        // Display balises in table
+        function displayBalises(balises) {
+            const tbody = document.getElementById('balisesTableBody');
+            tbody.innerHTML = '';
+
+            if (balises.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #7f8c8d;">No balises found. Add balises to start tracking.</td></tr>';
+            } else {
+                balises.forEach(balise => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${balise.name || 'Unknown'}</strong></td>
+                        <td><code>${balise.imei || 'N/A'}</code></td>
+                        <td>
+                            <span class="status-badge ${balise.status === 'ACTIVE' ? 'status-active' : 'status-inactive'}">
+                                ${balise.status || 'Unknown'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="battery-bar">
+                                <div class="battery-fill ${getBatteryClass(balise.batteryLevel)}" 
+                                     style="width: ${balise.batteryLevel || 0}%"></div>
+                            </div>
+                            <small>${balise.batteryLevel || 0}%</small>
+                        </td>
+                        <td>${formatDateTime(balise.lastSeen)}</td>
+                        <td>${formatLocation(balise.longitude, balise.latitude)}</td>
+                        <td><span class="stat-number" style="font-size: 1rem;">${balise.eventCount || 0}</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            document.getElementById('balisesTable').style.display = 'table';
+        }
+
+        // Helper functions
+        function getBatteryClass(level) {
+            if (level < 20) return 'low';
+            if (level < 50) return 'medium';
+            return '';
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return 'Never';
+            return new Date(dateString).toLocaleString();
+        }
+
+        function formatLocation(lng, lat) {
+            if (!lng || !lat) return 'Unknown';
+            return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        }
+
+        function updateConnectionStatus(connected) {
+            connectionStatus = connected;
+            const statusDot = document.getElementById('connectionStatus');
+            const statusText = document.getElementById('connectionText');
+            
+            if (connected) {
+                statusDot.classList.add('connected');
+                statusText.textContent = 'Connected';
+            } else {
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'Disconnected';
+            }
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        function refreshData() {
+            document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('balisesTable').style.display = 'none';
+            loadDashboardData();
+        }
+
+        // Log initialization
+        console.log('Fleet Monitor UI loaded successfully');
+        console.log('API Base URL:', API_BASE_URL);
+    </script>
+</body>
+</html>
