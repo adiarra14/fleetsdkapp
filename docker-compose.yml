@@ -66,16 +66,53 @@ services:
       - balise-postgres
       - balise-sdk-service
 
-  # Enhanced Fleet Monitor Web UI
+  # Enhanced Fleet Monitor Web UI with Balise Management
   frontend:
     build:
       context: ./web-ui
       dockerfile: Dockerfile
+      args:
+        - CACHE_BUST=2025-07-20-20-25-BALISE-MGMT
     container_name: balise-web-ui
     ports:
       - "6061:80"
+    environment:
+      - API_BASE_URL=http://balise-sdk-service:8080
     depends_on:
       - balise-sdk-service
+
+  # CMA-CGM Integration Service
+  cmacgm-integration:
+    build:
+      context: ./cma-cgm
+      dockerfile: Dockerfile
+      args:
+        - CACHE_BUST=2025-07-20-20-25-CMACGM
+    container_name: cmacgm-integration
+    ports:
+      - "6064:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://balise-postgres:5432/balisedb
+      - SPRING_DATASOURCE_USERNAME=adminbdb
+      - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
+      - CMACGM_AUTH_URL=https://auth-pre.cma-cgm.com/as/token.oauth2
+      - CMACGM_API_BASE_URL=https://apis-uat.cma-cgm.net/technical/generic/eagle/v1
+      - CMACGM_CLIENT_ID=beapp-sinigroup
+      - CMACGM_CLIENT_SECRET=YChnAz1dI2gvr40BMOyQWIeYT83DdtitHYfDmGd04xG5llcugV9NvfeihE72s1cJ
+      - CMACGM_SCOPE=tracking:write:be
+      - SERVER_PORT=8080
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      balise-postgres:
+        condition: service_healthy
+      balise-sdk-service:
+        condition: service_healthy
 
   # PostgreSQL database with PostGIS extension
   balise-postgres:

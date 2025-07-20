@@ -171,29 +171,100 @@ cma-cgm/
     └── troubleshooting.md
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start - CMA-CGM UAT Testing
 
-### 1. Authentication Test
+### Ready-to-Use Test Scripts
+
+#### Option 1: Java Test Client
+```bash
+# Compile and run the Java test client
+javac CmaCgmTestClient.java
+java CmaCgmTestClient
+```
+
+#### Option 2: PowerShell Script (Windows)
+```powershell
+# Run the PowerShell test script
+.\test-cmacgm.ps1
+```
+
+#### Option 3: Bash Script (Linux/macOS)
+```bash
+# Make executable and run
+chmod +x test-cmacgm.sh
+./test-cmacgm.sh
+```
+
+### Manual Testing with cURL
+
+#### 1. Get OAuth2 Token
 ```bash
 curl -X POST https://auth-pre.cma-cgm.com/as/token.oauth2 \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "client_id=beapp-sinigroup&client_secret=YChnAz1dI2gvr40BMOyQWIeYT83DdtitHYfDmGd04xG5llcugV9NvfeihE72s1cJ&grant_type=client_credentials&scope=tracking:write:be"
 ```
 
-### 2. Send Coordinates
+#### 2. Send GPS Coordinates (CMA-CGM Format)
 ```bash
 curl -X POST https://apis-uat.cma-cgm.net/technical/generic/eagle/v1/coordinates \
   -H "Authorization: Bearer <JWT_TOKEN>" \
   -H "Content-Type: application/json" \
-  -d '[{"equipmentReference":"CGMU5417495","eventCreatedDateTime":"2024-05-22T12:27:16Z","originatorName":"SINIGROUP","eventLocation":{"latitude":0.126487,"longitude":2.315618}}]'
+  -d '[
+    {
+        "equipmentReference": "APZU2106333",
+        "eventCreatedDateTime": "2024-07-20T17:00:00Z",
+        "originatorName": "SINIGROUP",
+        "partnerName": "SINI TRANSPORT",
+        "carrierBookingReference": "LHV3076333",
+        "modeOfTransport": "TRUCK",
+        "transportOrder": "TLHV2330333",
+        "eventLocation": {
+            "latitude": 44.56187398172333,
+            "longitude": -0.4188740439713333
+        }
+    }
+]'
 ```
 
-### 3. Send Events
+#### 3. Send Event Data (CMA-CGM Format)
 ```bash
 curl -X POST https://apis-uat.cma-cgm.net/technical/generic/eagle/v1/events \
   -H "Authorization: Bearer <JWT_TOKEN>" \
   -H "Content-Type: application/json" \
-  -d '[{"equipmentReference":"CGMU5417495","eventCreatedDateTime":"2024-05-22T12:27:16Z","originatorName":"SINIGROUP","eventType":"EQUIPMENT","eventClassifierCode":"ACT","equipmentEventTypeCode":"LOAD","eventLocation":{"facilityTypeCode":"DEPO","locationCode":"FRFOSD22","latitude":50.51281,"longitude":0.256815}}]'
+  -d '[
+    {
+        "equipmentReference": "APZU2106333",
+        "eventCreatedDateTime": "2024-07-20T17:00:00Z",
+        "originatorName": "SINIGROUP",
+        "partnerName": "SINI TRANSPORT",
+        "eventType": "TRANSPORT",
+        "transportEventTypeCode": "ARRI",
+        "equipmentEventTypeCode": "",
+        "eventClassifierCode": "ACT",
+        "carrierBookingReference": "LHV3076333",
+        "modeOfTransport": "TRUCK",
+        "transportationPhase": "IMPORT",
+        "transportOrder": "TLHV2330333",
+        "eventLocation": {
+            "facilityTypeCode": "CLOC",
+            "locationCode": "CONSIGNEE_LOC_CODE",
+            "locationUnLocode": "",
+            "locationName": "CONSIGNEE_LOC_NAME",
+            "latitude": 43.31501044666666,
+            "longitude": 6.36580111853943,
+            "address": {
+                "name": "CONSIGNEE_LOC_NAME_ADD",
+                "street": "piste de la Serre",
+                "streetNumber": "",
+                "floor": "",
+                "postCode": "83340",
+                "city": "LES MAYONS",
+                "stateRegion": "",
+                "country": "FRANCE"
+            }
+        }
+    }
+]'
 ```
 
 ## 🔍 Environment Configuration

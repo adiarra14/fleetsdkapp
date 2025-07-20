@@ -253,23 +253,34 @@
 
     <div class="container">
         <!-- Dashboard Stats -->
-        <div class="dashboard-grid">
-            <div class="card">
-                <h3>📍 Total Balises</h3>
-                <div class="stat-number" id="totalBalises">-</div>
-                <div class="stat-label">GPS Tracking Devices</div>
+        <div class="dashboard-content">
+            <div class="nav-buttons">
+                <a href="balise-management.html" class="nav-button">
+                    🎯 Balise Management
+                </a>
+                <a href="#" onclick="triggerCmaCgmSync()" class="nav-button sync-button">
+                    🔄 CMA-CGM Sync
+                </a>
             </div>
-            <div class="card">
-                <h3>✅ Active Balises</h3>
-                <div class="stat-number" id="activeBalises">-</div>
-                <div class="stat-label">Currently Online</div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalBalises">-</div>
+                    <div class="stat-label">Total Balises</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="activeBalises">-</div>
+                    <div class="stat-label">Active Balises</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="cmacgmAssigned">-</div>
+                    <div class="stat-label">CMA-CGM Assigned</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="systemStatus">-</div>
+                    <div class="stat-label">System Status</div>
+                </div>
             </div>
-            <div class="card">
-                <h3>📊 Recent Events</h3>
-                <div class="stat-number" id="recentEvents">-</div>
-                <div class="stat-label">Last 24 Hours</div>
-            </div>
-        </div>
 
         <!-- Balises Table -->
         <div class="balises-table">

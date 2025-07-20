@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<!--
+Fleet Management System with Maxvision SDK Integration
+
+Project: Fleet Management System with Multi-Customer Support
+Client: SiniTechnologie / Sinigroupe
+Project Chief: Antoine Diarra
+
+Copyright (c) 2025 Ynnov
+All rights reserved. This code is proprietary until transfer to client.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balise Management - Fleet Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .table th,
+        .table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-assigned {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .customer-select {
+            background: linear-gradient(135deg, #e8f4f8, #d6eaf8);
+            border: 2px solid #3498db;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .cmacgm-form {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 2px solid #f39c12;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .cmacgm-form.show {
+            display: block;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚛 Balise Management System</h1>
+            <p>Multi-Customer Fleet Monitoring & Assignment</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
+            <button class="nav-tab" onclick="showTab('balises')">📡 Balises</button>
+            <button class="nav-tab" onclick="showTab('assign')">🎯 Assign to Customer</button>
+            <button class="nav-tab" onclick="showTab('customers')">🏢 Customers</button>
+            <button class="nav-tab" onclick="showTab('sync')">🔄 Sync Status</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalBalises">-</div>
+                    <div class="stat-label">Total Balises</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="activeBalises">-</div>
+                    <div class="stat-label">Active Balises</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="cmacgmBalises">-</div>
+                    <div class="stat-label">CMA-CGM Assigned</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="unassignedBalises">-</div>
+                    <div class="stat-label">Unassigned</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Recent Activity</div>
+                <div class="card-body">
+                    <div id="recentActivity">Loading recent activity...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balises Tab -->
+        <div id="balises" class="tab-content">
+            <div class="card">
+                <div class="card-header">All Balises</div>
+                <div class="card-body">
+                    <div id="balisesList">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            Loading balises...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assign to Customer Tab -->
+        <div id="assign" class="tab-content">
+            <div class="card">
+                <div class="card-header">Assign Balise to Customer</div>
+                <div class="card-body">
+                    <form id="assignmentForm">
+                        <div class="form-row">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <label for="baliseSelect">Select Balise</label>
+                                    <select id="baliseSelect" class="form-control" required>
+                                        <option value="">Loading balises...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-col">
+                                <div class="form-group customer-select">
+                                    <label for="customerSelect">Select Customer</label>
+                                    <select id="customerSelect" class="form-control" required onchange="showCustomerForm()">
+                                        <option value="">Choose customer...</option>
+                                        <option value="CMACGM">CMA-CGM</option>
+                                        <option value="DHL">DHL</option>
+                                        <option value="MAERSK">Maersk</option>
+                                        <option value="OTHER">Other Customer</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CMA-CGM Specific Form -->
+                        <div id="cmacgmForm" class="cmacgm-form">
+                            <h3>🚢 CMA-CGM Container Information</h3>
+                            <p>Please provide the required container and transport information for CMA-CGM API integration:</p>
+                            
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="equipmentReference">Equipment Reference *</label>
+                                        <input type="text" id="equipmentReference" class="form-control" 
+                                               placeholder="e.g., APZU2106333" required>
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="carrierBookingReference">Carrier Booking Reference *</label>
+                                        <input type="text" id="carrierBookingReference" class="form-control" 
+                                               placeholder="e.g., LHV3076333" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="transportOrder">Transport Order</label>
+                                        <input type="text" id="transportOrder" class="form-control" 
+                                               placeholder="e.g., TLHV2330333">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="modeOfTransport">Mode of Transport</label>
+                                        <select id="modeOfTransport" class="form-control">
+                                            <option value="TRUCK">Truck</option>
+                                            <option value="RAIL">Rail</option>
+                                            <option value="BARGE">Barge</option>
+                                            <option value="VESSEL">Vessel</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="partnerName">Partner Name</label>
+                                        <input type="text" id="partnerName" class="form-control" 
+                                               value="SINI TRANSPORT" placeholder="Partner company name">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="transportationPhase">Transportation Phase</label>
+                                        <select id="transportationPhase" class="form-control">
+                                            <option value="IMPORT">Import</option>
+                                            <option value="EXPORT">Export</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h4>📍 Default Location Information (Bamako, Mali)</h4>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="locationCode">Location Code</label>
+                                        <input type="text" id="locationCode" class="form-control" 
+                                               value="BAMAKO_DEPOT_01" placeholder="Location identifier">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="locationName">Location Name</label>
+                                        <input type="text" id="locationName" class="form-control" 
+                                               value="Bamako Central Depot" placeholder="Location display name">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="facilityAddress">Facility Address</label>
+                                        <input type="text" id="facilityAddress" class="form-control" 
+                                               value="Avenue de la Nation, 123" placeholder="Street address">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="facilityCity">City</label>
+                                        <input type="text" id="facilityCity" class="form-control" 
+                                               value="BAMAKO" placeholder="City name">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="assignmentNotes">Assignment Notes</label>
+                            <textarea id="assignmentNotes" class="form-control" rows="3" 
+                                      placeholder="Optional notes about this assignment..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            🎯 Assign Balise to Customer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customers Tab -->
+        <div id="customers" class="tab-content">
+            <div class="card">
+                <div class="card-header">Customer Management</div>
+                <div class="card-body">
+                    <div id="customersList">Loading customers...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sync Status Tab -->
+        <div id="sync" class="tab-content">
+            <div class="card">
+                <div class="card-header">Synchronization Status</div>
+                <div class="card-body">
+                    <button class="btn btn-primary" onclick="triggerManualSync()">
+                        🔄 Trigger Manual Sync
+                    </button>
+                    <div id="syncStatus" style="margin-top: 20px;">Loading sync status...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let balises = [];
+        let customers = [];
+        let assignments = [];
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+            loadBalises();
+            loadCustomers();
+        });
+
+        // Tab navigation
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Load tab-specific data
+            switch(tabName) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'balises':
+                    loadBalises();
+                    break;
+                case 'sync':
+                    loadSyncStatus();
+                    break;
+            }
+        }
+
+        // Load dashboard statistics
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/balises/stats');
+                const stats = await response.json();
+                
+                document.getElementById('totalBalises').textContent = stats.total || 0;
+                document.getElementById('activeBalises').textContent = stats.active || 0;
+                document.getElementById('cmacgmBalises').textContent = stats.cmacgm || 0;
+                document.getElementById('unassignedBalises').textContent = stats.unassigned || 0;
+                
+                loadRecentActivity();
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // Load recent activity
+        async function loadRecentActivity() {
+            try {
+                const response = await fetch('/api/balises/recent-activity');
+                const activities = await response.json();
+                
+                const activityHtml = activities.map(activity => `
+                    <div style="padding: 10px; border-bottom: 1px solid #eee;">
+                        <strong>${activity.balise_name}</strong> - ${activity.activity}
+                        <span style="float: right; color: #666;">${new Date(activity.timestamp).toLocaleString()}</span>
+                    </div>
+                `).join('');
+                
+                document.getElementById('recentActivity').innerHTML = activityHtml || 'No recent activity';
+            } catch (error) {
+                document.getElementById('recentActivity').innerHTML = 'Error loading activity';
+            }
+        }
+
+        // Load balises list
+        async function loadBalises() {
+            try {
+                const response = await fetch('/api/balises');
+                balises = await response.json();
+                
+                const balisesHtml = `
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>IMEI</th>
+                                <th>Status</th>
+                                <th>Customer</th>
+                                <th>Last Seen</th>
+                                <th>Battery</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${balises.map(balise => `
+                                <tr>
+                                    <td><strong>${balise.name}</strong></td>
+                                    <td>${balise.imei}</td>
+                                    <td><span class="status-badge ${balise.status === 'ACTIVE' ? 'status-active' : 'status-inactive'}">${balise.status}</span></td>
+                                    <td>${balise.customer || 'Unassigned'}</td>
+                                    <td>${balise.last_seen ? new Date(balise.last_seen).toLocaleString() : 'Never'}</td>
+                                    <td>${balise.battery_level ? balise.battery_level + '%' : 'Unknown'}</td>
+                                    <td>
+                                        <button class="btn btn-warning" onclick="editBalise(${balise.id})">Edit</button>
+                                        <button class="btn btn-danger" onclick="unassignBalise(${balise.id})">Unassign</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                document.getElementById('balisesList').innerHTML = balisesHtml;
+                
+                // Update balise select dropdown
+                const baliseSelect = document.getElementById('baliseSelect');
+                baliseSelect.innerHTML = '<option value="">Choose balise...</option>' +
+                    balises.filter(b => !b.customer).map(balise => 
+                        `<option value="${balise.id}">${balise.name} (${balise.imei})</option>`
+                    ).join('');
+                
+            } catch (error) {
+                document.getElementById('balisesList').innerHTML = '<div class="alert alert-error">Error loading balises</div>';
+            }
+        }
+
+        // Show customer-specific form
+        function showCustomerForm() {
+            const customer = document.getElementById('customerSelect').value;
+            const cmacgmForm = document.getElementById('cmacgmForm');
+            
+            if (customer === 'CMACGM') {
+                cmacgmForm.classList.add('show');
+            } else {
+                cmacgmForm.classList.remove('show');
+            }
+        }
+
+        // Handle assignment form submission
+        document.getElementById('assignmentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const baliseId = document.getElementById('baliseSelect').value;
+            const customer = document.getElementById('customerSelect').value;
+            
+            if (!baliseId || !customer) {
+                alert('Please select both balise and customer');
+                return;
+            }
+            
+            const assignmentData = {
+                balise_id: baliseId,
+                customer: customer,
+                notes: document.getElementById('assignmentNotes').value
+            };
+            
+            // Add CMA-CGM specific data if selected
+            if (customer === 'CMACGM') {
+                assignmentData.cmacgm_data = {
+                    equipment_reference: document.getElementById('equipmentReference').value,
+                    carrier_booking_reference: document.getElementById('carrierBookingReference').value,
+                    transport_order: document.getElementById('transportOrder').value,
+                    mode_of_transport: document.getElementById('modeOfTransport').value,
+                    partner_name: document.getElementById('partnerName').value,
+                    transportation_phase: document.getElementById('transportationPhase').value,
+                    location_code: document.getElementById('locationCode').value,
+                    location_name: document.getElementById('locationName').value,
+                    facility_address: document.getElementById('facilityAddress').value,
+                    facility_city: document.getElementById('facilityCity').value
+                };
+            }
+            
+            try {
+                const response = await fetch('/api/balises/assign', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(assignmentData)
+                });
+                
+                if (response.ok) {
+                    alert('Balise assigned successfully!');
+                    document.getElementById('assignmentForm').reset();
+                    document.getElementById('cmacgmForm').classList.remove('show');
+                    loadBalises();
+                    loadDashboard();
+                } else {
+                    alert('Error assigning balise');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        // Load customers
+        async function loadCustomers() {
+            try {
+                const response = await fetch('/api/customers');
+                customers = await response.json();
+                
+                const customersHtml = `
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Code</th>
+                                <th>Assigned Balises</th>
+                                <th>Sync Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${customers.map(customer => `
+                                <tr>
+                                    <td><strong>${customer.name}</strong></td>
+                                    <td>${customer.code}</td>
+                                    <td>${customer.balise_count || 0}</td>
+                                    <td><span class="status-badge ${customer.sync_enabled ? 'status-active' : 'status-inactive'}">${customer.sync_enabled ? 'Enabled' : 'Disabled'}</span></td>
+                                    <td>
+                                        <button class="btn btn-primary" onclick="viewCustomer(${customer.id})">View</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                document.getElementById('customersList').innerHTML = customersHtml;
+            } catch (error) {
+                document.getElementById('customersList').innerHTML = '<div class="alert alert-error">Error loading customers</div>';
+            }
+        }
+
+        // Load sync status
+        async function loadSyncStatus() {
+            try {
+                const response = await fetch('/api/cmacgm/sync/stats');
+                const stats = await response.json();
+                
+                const statusHtml = `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.totalEventsLast24h || 0}</div>
+                            <div class="stat-label">Events (24h)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.syncedGpsLast24h || 0}</div>
+                            <div class="stat-label">GPS Synced</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.syncedEventsLast24h || 0}</div>
+                            <div class="stat-label">Events Synced</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.activeBalises || 0}</div>
+                            <div class="stat-label">Active Balises</div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('syncStatus').innerHTML = statusHtml;
+            } catch (error) {
+                document.getElementById('syncStatus').innerHTML = '<div class="alert alert-error">Error loading sync status</div>';
+            }
+        }
+
+        // Trigger manual sync
+        async function triggerManualSync() {
+            try {
+                const response = await fetch('/api/cmacgm/sync', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    alert('Manual sync triggered successfully!');
+                    loadSyncStatus();
+                } else {
+                    alert('Error triggering sync');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Placeholder functions
+        function editBalise(id) {
+            alert('Edit balise functionality - coming soon!');
+        }
+
+        function unassignBalise(id) {
+            if (confirm('Are you sure you want to unassign this balise?')) {
+                // Implement unassign logic
+                alert('Unassign functionality - coming soon!');
+            }
+        }
+
+        function viewCustomer(id) {
+            alert('View customer details - coming soon!');
+        }
+    </script>
+</body>
+</html>
