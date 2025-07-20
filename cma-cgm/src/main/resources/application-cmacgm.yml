@@ -1,0 +1,106 @@
+#
+# Fleet Monitor - CMA-CGM Integration Module
+# Application Configuration
+#
+# Project: Fleet Management System with Maxvision SDK Integration
+# Client: SiniTechnologie / Sinigroupe (for CMA-CGM customer)
+# Project Chief: Antoine Diarra
+#
+# Copyright (c) 2025 Ynnov
+# All rights reserved. This software and associated documentation files are the property
+# of Ynnov until transfer to the client SiniTechnologie/Sinigroupe.
+#
+# Unauthorized copying, modification, distribution, or use of this software
+# is strictly prohibited without prior written consent from Ynnov.
+#
+
+# CMA-CGM Integration Configuration
+cmacgm:
+  auth:
+    url: https://auth-pre.cma-cgm.com/as/token.oauth2
+    client-id: beapp-sinigroup
+    client-secret: ${CMACGM_CLIENT_SECRET:YChnAz1dI2gvr40BMOyQWIeYT83DdtitHYfDmGd04xG5llcugV9NvfeihE72s1cJ}
+    scope: tracking:write:be
+  
+  api:
+    base-url: https://apis-uat.cma-cgm.net/technical/generic/eagle/v1
+    timeout: 30
+    retry-attempts: 3
+    retry-delay-seconds: 5
+  
+  integration:
+    enabled: true
+    originator-name: SINIGROUP
+    partner-name: SINIGROUP
+    default-mode-of-transport: TRUCK
+    default-fuel-type: FUEL
+    default-mileage-unit: KM
+    default-temperature-unit: CEL
+    batch-size: 100
+    processing-interval-seconds: 60
+
+# Spring Boot Configuration
+spring:
+  application:
+    name: fleet-monitor-cmacgm-integration
+  
+  profiles:
+    active: cmacgm
+  
+  # Database configuration (if needed for integration logging)
+  datasource:
+    url: jdbc:postgresql://balise-postgres:5432/balisedb
+    username: adminbdb
+    password: ${POSTGRES_PASSWORD:To7Z2UCeWTsriPxbADX8}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect
+
+# Logging Configuration
+logging:
+  level:
+    com.maxvision.cmacgm: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%logger{36}] - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%logger{36}] - %msg%n"
+  file:
+    name: logs/cmacgm-integration.log
+
+# Management and Monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Server Configuration
+server:
+  port: 8090
+  servlet:
+    context-path: /cmacgm
+
+# Async Configuration
+spring:
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 20
+        queue-capacity: 100
+      thread-name-prefix: cmacgm-async-

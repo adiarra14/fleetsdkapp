@@ -1,0 +1,405 @@
+openapi: 3.0.1
+info:
+  title: TechnicalGenericEagleIngestion API
+  description: CMA CGM - TechnicalGenericEagleIngestion API backend implementation
+  x-hopex:
+    - componentCode: CP004632
+  version: 1.0.15
+servers:
+  - url: /technical/generic/eagle/v1
+tags:
+  - name: coordinates
+    description: TechnicalGenericEagleIngestion API backend implementation for coordinates
+  - name: events
+    description: TechnicalGenericEagleIngestion API backend implementation for events
+paths:
+  /coordinates:
+    post:
+      tags:
+        - coordinates
+      summary: Post provider container tracking data
+      description: <P>Store provider container tracking data in Eagle Platform.<br></P>
+      operationId: saveCoordinates
+      requestBody:
+        description: The coordinates to store/manage
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Coordinate'
+        required: true
+      responses:
+        "201":
+          description: Created
+          content: { }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fault'
+        "500":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fault'
+      security:
+        - oAuth:
+            - tracking:write:be
+      x-codegen-request-body-name: coordinates
+  /events:
+    post:
+      tags:
+        - events
+      summary: Post provider events to Eagle
+      description: <P>Store provider container events in Eagle Platform.<br></P>
+      operationId: saveEvents
+      requestBody:
+        description: The events to store/manage
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Event'
+        required: true
+      responses:
+        "201":
+          description: Created
+          content: { }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fault'
+        "500":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fault'
+      security:
+        - oAuth:
+            - tracking:write:be
+      x-codegen-request-body-name: events
+
+components:
+  schemas:
+
+    Event:
+      type: object
+      required:
+        - equipmentReference
+        - eventCreatedDateTime
+        - originatorName
+        - eventType
+        - eventClassifierCode
+        - eventLocation
+      properties:
+        equipmentReference:
+          maxLength: 15
+          type: string
+          description: "The unique identifier for the equipment, which should follow the BIC ISO Container Identification Number where possible"
+          example: CGMU5417495
+        eventCreatedDateTime:
+          type: string
+          description: "The date and time when the event occurred (ACT) or will occur (EST, PLN). Must be in the past if eventClassifierCode = “ACT”. Must be in the future if eventClassifierCode = “EST”. The expected format is UTC with Z  '2024-05-22T12:27:16Z' or local time with offset +xx:xx ‘2024-05-22T15:27:16+03:00’."
+          format: date-time
+          example: '2024-05-22T12:27:16Z'
+        source:
+          maxLength: 20
+          type: string
+          description: Name of the event provider company
+          example: "TRUCK_COMPANY_NAME, AGGREGATOR_COMPANY, RAIL_COMPANY_NAME"
+          deprecated: true
+        originatorName:
+          maxLength: 20
+          type: string
+          description: "The name of the partner sending data to CMA CGM, which may be a data aggregator or the transport company itself"
+          example: "AGGREGATOR_COMPANY, TRUCK_COMPANY_NAME, RAIL_COMPANY_NAME"
+        partnerName:
+          type: string
+          description: "The name of the partner at the origin of the provided data, which is the transport company if originatorName is a data aggregator"
+          example: "TRUCK_COMPANY_NAME, RAIL_COMPANY_NAME"
+        eventType:
+          type: string
+          enum:
+            - TRANSPORT
+            - EQUIPMENT
+            - SHIPMENT
+          description: "All types of events relating to transport are captured in
+             the Transport Event Type; All types of events relating to equipment
+             are captured in the Equipment Event Type. [Enum : TRANSPORT, EQUIPMENT, SHIPMENT]
+             (OPERATION not currently  processed)"
+          example: EQUIPMENT
+        transportEventTypeCode:
+          type: string
+          description: "The code to identify the type of event that is related to
+             transport. (Mandatory if eventType = TRANSPORT) [Enum:ARRI, DEPA]"
+          example: DEPA
+        equipmentEventTypeCode:
+          type: string
+          description: "The code to identify an equipment-related event type. (Mandatory
+             if eventType = EQUIPMENT) [Enum: LOAD, DISC, PICK, DROP] (GTIN, GTOT, STUF, STRP,
+             HOLD, INSP, RMVD, RSEA not currently processed)"
+          example: LOAD
+        shipmentEventTypeCode:
+          type: string
+          description: "This describes the types events that can relate to a shipment (Mandatory if eventType = SHIPMENT) [Enum:CMPL]"
+          example: CMPL
+        shipmentInformationTypeCode:
+          type: string
+          description: "The code to identify the type of information that is related to the shipment. (Mandatory if eventType = SHIPMENT) [Enum:TRD]"
+          example: TRD
+        eventClassifierCode:
+          type: string
+          enum:
+            - PLN
+            - ACT
+            - EST
+          description: "Denotes whether the event is planned, estimated or actual,
+             requested [Enum : PLN, ACT or EST] (REQ Requested not currently  processed)"
+          example: EST
+        carrierBookingReference:
+          maxLength: 35
+          type: string
+          description: A set of unique characters provided by carrier to identify
+            a booking
+          example: LHV2536188
+        modeOfTransport:
+          type: string
+          description: "Transport mode [Enum: RAIL, BARGE, VESSEL, TRUCK]"
+          example: VESSEL
+        transportationPhase:
+          type: string
+          description: "Transportation phase [Enum: IMPORT, EXPORT, TRANSHIPMENT, DOMESTIC]"
+          example: EXPORT
+        transportOrder:
+          maxLength: 15
+          type: string
+          description: Transport order reference
+          example: "11000679181"
+        eventLocation:
+          $ref: '#/components/schemas/EventLocation'
+        fuelType:
+          type: string
+          maxLength: 20
+          description: "Type of fuel used. Please use: [“FUEL”, “HVO”, “BIODIESEL”, “BIO-GNV”, “ELECTRIC”, “H2-FUEL-CELL”]"
+          example: FUEL
+        truckMileage:
+          type: number
+          description: "Mileage on the truck odometer."
+          example: 80000
+        truckMileageUnit:
+          type: string
+          description: "The unit of measure for mileage on the truck odometer which can be expressed in kilometers or miles. Please use:[“KM”, “MI”]."
+          example: KM
+        reeferTemperature:
+          type: number
+          description: "Reefer temperature measured ."
+          example: 2
+        reeferTemperatureUnit:
+          type: string
+          description: "The unit of measure for reefer temperature which can be expressed in degrees Celsius or Fahrenheit. Please use:[“CEL”, “FAH”] ."
+          example: CEL
+
+    EventLocation:
+      required:
+        - facilityTypeCode
+        - locationCode
+        - latitude
+        - longitude
+      type: object
+      properties:
+        facilityTypeCode:
+          type: string
+          enum:
+            - CLOC
+            - DEPO
+            - POTE
+            - RAMP
+          description: "Facility Type provides the locational context for the event
+             being reported on. The facility types are defined as unique areas where
+             equipment and/or a transport type can be located for a specified period
+             as defined by DCSA. [Enum : CLOC, DEPO, POTE, RAMP] (BOCR, COFS, COYA,
+             OFFD, INTE, PBPL, BRTH not currently processed) CLOC customer location,
+             DEPO Depot, POTE port terminal, RAMP Ramp"
+          example: DEPO
+        locationCode:
+          maxLength: 50
+          type: string
+          description: The identifier for a location
+          example: FRFOSD22
+        locationName:
+          maxLength: 100
+          type: string
+          description: The name of the location
+          example: CARTAGENA CONTECAR
+        latitude:
+          type: number
+          description: Latitude of the location
+          example: 50.51281
+        longitude:
+          type: number
+          description: Longitude of the location
+          example: 0.256815
+        address:
+          $ref: '#/components/schemas/Address'
+
+    Address:
+      type: object
+      properties:
+        name:
+          maxLength: 100
+          type: string
+          description: Name used for the address
+          example: PORT OF BRISBANE
+        street:
+          maxLength: 100
+          type: string
+          description: The name of the street of the party's address
+          example: BINGERA  DRIVE
+        streetNumber:
+          maxLength: 50
+          type: string
+          description: The number of the street of the party's address
+          example: "14"
+        floor:
+          maxLength: 50
+          type: string
+          description: The floor of the party's street number
+          example: second
+        postCode:
+          maxLength: 10
+          type: string
+          description: The postal code of the party's address
+          example: "4178"
+        city:
+          maxLength: 65
+          type: string
+          description: The city name of the party's address
+          example: BRISBANE
+        stateRegion:
+          maxLength: 65
+          type: string
+          description: The state/region of the party's address
+          example: PACA
+        country:
+          maxLength: 75
+          type: string
+          description: The country of the address
+          example: FRANCE
+
+    Coordinate:
+      required:
+        - equipmentReference
+        - eventCreatedDateTime
+        - originatorName
+        - eventLocation
+      type: object
+      properties:
+        equipmentReference:
+          type: string
+          description: "The unique identifier for the equipment, which should follow
+             the BIC ISO Container Identification Number where possible"
+          example: CGMU5417495
+        eventCreatedDateTime:
+          type: string
+          description: "The date and time of passage at these coordinates. Must be in past. The expected format is UTC with Z '2024-05-22T12:27:16Z'  or local time with offset +xx:xx ‘2024-05-22T15:27:16+03:00’."
+          format: date-time
+          example: '2024-05-22T12:27:16Z'
+        originatorName:
+          maxLength: 20
+          type: string
+          description: "The name of the partner sending data to CMA CGM, which may be a data aggregator or the transport company itself"
+          example: "AGGREGATOR_COMPANY, TRUCK_COMPANY_NAME, RAIL_COMPANY_NAME"
+        partnerName:
+          type: string
+          description: "The name of the partner at the origin of the provided data, which is the transport company if originatorName is a data aggregator"
+          example: "TRUCK_COMPANY_NAME, RAIL_COMPANY_NAME"
+        carrierBookingReference:
+          maxLength: 35
+          type: string
+          description: A set of unique characters provided by carrier to identify
+            a booking
+          example: LHV2536188
+        modeOfTransport:
+          type: string
+          description: "Transport mode [Enum: RAIL, BARGE, VESSEL, TRUCK]"
+          example: RAIL
+        transportOrder:
+          type: string
+          description: Transport order reference
+          example: AAAA112233
+        eventLocation:
+          $ref: '#/components/schemas/Location'
+        fuelType:
+          type: string
+          maxLength: 20
+          description: "Type of fuel used. Please use: [“FUEL”, “HVO”, “BIODIESEL”, “BIO-GNV”, “ELECTRIC”, “H2-FUEL-CELL”]"
+          example: FUEL
+        truckMileage:
+          type: number
+          description: "Mileage on the truck odometer."
+          example: 80000
+        truckMileageUnit:
+          type: string
+          description: "The unit of measure for mileage on the truck odometer which can be expressed in kilometers or miles. Please use:[“KM”, “MI”]."
+          example: KM
+        reeferTemperature:
+          type: number
+          description: "Reefer temperature measured ."
+          example: 2
+        reeferTemperatureUnit:
+          type: string
+          description: "The unit of measure for reefer temperature which can be expressed in degrees Celsius or Fahrenheit. Please use:[“CEL”, “FAH”] ."
+          example: CEL
+
+    Location:
+      required:
+        - latitude
+        - longitude
+      type: object
+      properties:
+        latitude:
+          type: number
+          description: Latitude of the container
+          example: 0.126487
+        longitude:
+          type: number
+          description: Longitude of the container
+          example: 2.315618
+      description: Geographical coordinates of the container
+
+    Fault:
+      required:
+        - reason
+      type: object
+      properties:
+        reason:
+          type: string
+          description: ">- HTTP error or Free text such as  Database Not Available
+             , Invalid Credential, Mandatory, Invalid Format,  Invalid Length, Forbidden
+             Value, Invalid Data,..."
+          example: invalid_request
+        code:
+          type: string
+          description: "Error Id,  Server Application error ID, Oracle error Id, ...."
+          example: 400 - BAD REQUEST
+        description:
+          type: string
+          description: Human-readable error description including Data and Value
+          example: Incorrect call settings
+
+  securitySchemes:
+    oAuth:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.cma-cgm.com/as/token.oauth2
+          scopes:
+            tracking:write:be: write access
+x-original-swagger-version: "2.0"
