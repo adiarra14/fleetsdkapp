@@ -100,7 +100,7 @@ public class SimpleCmaCgmServer {
     static class CoordinatesHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            String response = "{\"message\":\"Coordinates endpoint ready\",\"location\":\"Bamako, Mali\"}";
+            String response = "{\"message\":\"Coordinates endpoint ready\",\"default_location\":\"Bamako, Mali\",\"partner\":\"SINIgroupe\",\"country\":\"Mali\"}";
             
             exchange.getResponseHeaders().set("Content-Type", "application/json");
             exchange.sendResponseHeaders(200, response.length());
@@ -114,7 +114,7 @@ public class SimpleCmaCgmServer {
     static class EventsHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            String response = "{\"message\":\"Events endpoint ready\",\"supported_events\":[\"GPS\",\"LOCK\",\"UNLOCK\"]}";
+            String response = "{\"message\":\"Events endpoint ready\",\"supported_events\":[\"GPS\",\"LOCK\",\"UNLOCK\"],\"default_location\":\"Bamako, Mali\",\"partner\":\"SINIgroupe\"}";
             
             exchange.getResponseHeaders().set("Content-Type", "application/json");
             exchange.sendResponseHeaders(200, response.length());
