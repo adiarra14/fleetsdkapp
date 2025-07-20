@@ -2,10 +2,10 @@ services:
   # Backend service using Java implementation with SDK
   balise-sdk-service:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
+      context: ./backend-service
+      dockerfile: Dockerfile
       args:
-        - CACHE_BUST=2025-07-19-22-10-REAL-BALISE
+        - CACHE_BUST=2025-07-20-12-15-SPRING-BOOT
     container_name: balise-sdk-service
     ports:
       - "6062:8080"

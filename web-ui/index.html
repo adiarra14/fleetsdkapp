@@ -285,8 +285,8 @@
     </div>
 
     <script>
-        // Configuration
-        const API_BASE_URL = 'http://localhost:6062/api';
+        // Configuration - Use relative URL to leverage nginx proxy
+        const API_BASE_URL = '/api';
         let connectionStatus = false;
 
         // Initialize the dashboard

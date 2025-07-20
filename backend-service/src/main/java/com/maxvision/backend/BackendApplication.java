@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
-@ComponentScan(basePackages = {"com.maxvision.backend"})
+@ComponentScan(basePackages = {"com.maxvision.backend", "com.maxvision.backend.controller"})
 @EnableAutoConfiguration
 @RestController
 public class BackendApplication {
