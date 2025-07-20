@@ -1,3 +1,19 @@
+/**
+ * Fleet Monitor - Balise Management System
+ * TCP Server Application Main Class
+ * 
+ * Project: Fleet Management System with Maxvision SDK Integration
+ * Client: SiniTechnologie / Sinigroupe
+ * Project Chief: Antoine Diarra
+ * 
+ * Copyright (c) 2025 Ynnov
+ * All rights reserved. This software and associated documentation files are the property
+ * of Ynnov until transfer to the client SiniTechnologie/Sinigroupe.
+ * 
+ * Unauthorized copying, modification, distribution, or use of this software
+ * is strictly prohibited without prior written consent from Ynnov.
+ */
+
 package com.maxvision.tcpserver;
 
 import org.springframework.beans.factory.config.BeanDefinition;
