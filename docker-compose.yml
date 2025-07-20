@@ -5,7 +5,7 @@ services:
       context: ./backend-service
       dockerfile: Dockerfile
       args:
-        - CACHE_BUST=2025-07-20-12-15-SPRING-BOOT
+        - CACHE_BUST=2025-07-20-12-33-FORCE-REBUILD
     container_name: balise-sdk-service
     ports:
       - "6062:8080"
