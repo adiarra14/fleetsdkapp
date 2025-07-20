@@ -23,9 +23,9 @@ WORKDIR /app
 # Install required packages
 RUN apk add --no-cache curl
 
-# Copy source files and compile simple Java server
-COPY src/main/java/com/cmacgm/integration/SimpleCmaCgmServer.java .
-RUN javac -cp "." SimpleCmaCgmServer.java
+# Copy source files with proper directory structure
+COPY src/main/java ./src/main/java
+RUN javac -d . src/main/java/com/cmacgm/integration/SimpleCmaCgmServer.java
 
 # Expose port
 EXPOSE 8080
@@ -35,4 +35,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
 # Run the simple Java server
-CMD ["java", "SimpleCmaCgmServer"]
+CMD ["java", "com.cmacgm.integration.SimpleCmaCgmServer"]
