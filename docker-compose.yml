@@ -14,8 +14,6 @@
 # is strictly prohibited without prior written consent from Ynnov.
 #
 
-version: '3.8'
-
 services:
   # Backend service using Java implementation with SDK
   balise-sdk-service:
@@ -67,12 +65,12 @@ services:
       - balise-sdk-service
 
   # Enhanced Fleet Monitor Web UI with Balise Management
-  frontend:
+  balise-web-ui:
     build:
       context: ./web-ui
       dockerfile: Dockerfile
       args:
-        - CACHE_BUST=2025-07-20-20-25-BALISE-MGMT
+        - CACHE_BUST=2025-07-20-21-15-PORTAINER-FIX
     container_name: balise-web-ui
     ports:
       - "6061:80"
@@ -85,9 +83,9 @@ services:
   cmacgm-integration:
     build:
       context: ./cma-cgm
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
       args:
-        - CACHE_BUST=2025-07-20-20-25-CMACGM
+        - CACHE_BUST=2025-07-20-21-15-PORTAINER-FIX
     container_name: cmacgm-integration
     ports:
       - "6064:8080"
