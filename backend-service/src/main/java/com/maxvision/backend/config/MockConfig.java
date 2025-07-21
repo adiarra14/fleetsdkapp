@@ -2,8 +2,9 @@ package com.maxvision.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import com.maxvision.edge.gateway.lock.netty.handler.GlobalExceptionHandler;
 import com.maxvision.edge.gateway.lock.netty.LockChannelInitializer;
+import com.maxvision.backend.dummy.GlobalExceptionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Configuration class to provide mock beans for SDK dependencies
@@ -12,19 +13,14 @@ import com.maxvision.edge.gateway.lock.netty.LockChannelInitializer;
 @Configuration
 public class MockConfig {
 
-    /**
-     * Create mock GlobalExceptionHandler bean
-     */
-    @Bean
-    public GlobalExceptionHandler globalExceptionHandler() {
-        return new GlobalExceptionHandler();
-    }
+    @Autowired
+    private GlobalExceptionHandler globalExceptionHandler;
     
     /**
      * Create mock LockChannelInitializer bean
      */
     @Bean
     public LockChannelInitializer lockChannelInitializer() {
-        return new LockChannelInitializer(globalExceptionHandler());
+        return new LockChannelInitializer(globalExceptionHandler);
     }
 }
