@@ -67,7 +67,8 @@ services:
       context: ./cma-cgm
       dockerfile: docker/Dockerfile.nomaven
       args:
-        - CACHE_BUST=2025-07-21-09-45-NOMAVEN-FIX
+        - CACHE_BUST=2025-07-21-10-30-NO-POM-XML
+    # Create .dockerignore file to exclude pom.xml
     container_name: cmacgm-integration
     ports:
       - "6064:8081"

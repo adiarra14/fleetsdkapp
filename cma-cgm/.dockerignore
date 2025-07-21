@@ -1,0 +1,16 @@
+# Exclude Maven files from Docker build context
+pom.xml
+target/
+.mvn/
+mvnw
+mvnw.cmd
+
+# Exclude IDE files
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# Exclude Git files
+.git/
+.gitignore
