@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
  */
 public class SimpleCmaCgmServer {
     
-    private static final int PORT = 8080;
+    private static final int PORT = 8081;
     
     public static void main(String[] args) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);

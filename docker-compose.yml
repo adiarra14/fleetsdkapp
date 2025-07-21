@@ -88,7 +88,7 @@ services:
         - CACHE_BUST=2025-07-20-21-15-PORTAINER-FIX
     container_name: cmacgm-integration
     ports:
-      - "6064:8080"
+      - "6064:8081"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://balise-postgres:5432/balisedb
       - SPRING_DATASOURCE_USERNAME=adminbdb
@@ -98,10 +98,10 @@ services:
       - CMACGM_CLIENT_ID=beapp-sinigroup
       - CMACGM_CLIENT_SECRET=YChnAz1dI2gvr40BMOyQWIeYT83DdtitHYfDmGd04xG5llcugV9NvfeihE72s1cJ
       - CMACGM_SCOPE=tracking:write:be
-      - SERVER_PORT=8080
+      - SERVER_PORT=8081
       - JAVA_OPTS=-Xmx512m -Xms256m
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
+      test: ["CMD-SHELL", "nc -z localhost 8081 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
