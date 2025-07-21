@@ -3,9 +3,9 @@ services:
   balise-sdk-service:
     build:
       context: ./backend-service
-      dockerfile: Dockerfile.jar
+      dockerfile: Dockerfile.maven
       args:
-        - CACHE_BUST=2025-07-21-11-05-NO-MAVEN
+        - CACHE_BUST=2025-07-21-20-55-MAVEN-FIXED
     container_name: balise-sdk-service
     ports:
       - "6062:8080"
