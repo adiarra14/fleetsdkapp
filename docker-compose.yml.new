@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  # Backend service (Spring Boot)
+  balise-sdk-service:
+    build:
+      context: ./backend-service
+      dockerfile: Dockerfile
+      args:
+        - CACHE_BUST=2025-07-21-08-15-FULL-API
+    container_name: balise-sdk-service
+    ports:
+      - "6062:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://balise-postgres:5432/balisedb
+      - SPRING_DATASOURCE_USERNAME=adminbdb
+      - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
+      - SPRING_PROFILES_ACTIVE=backend
+      - SERVER_PORT=8080
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8080 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      balise-postgres:
+        condition: service_healthy
+
+  # TCP server for balise connections
+  balise-tcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.tcp-server
+      args:
+        - CACHE_BUST=2025-07-20-12-40-NO-MAVEN
+    container_name: balise-tcp-server
+    ports:
+      - "6060:6060"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://balise-postgres:5432/balisedb
+      - SPRING_DATASOURCE_USERNAME=adminbdb
+      - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
+      - SERVER_PORT=6060
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 6060 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      balise-postgres:
+        condition: service_healthy
+
+  # Web UI (nginx)
+  balise-web-ui:
+    image: nginx:alpine
+    container_name: balise-web-ui
+    ports:
+      - "6061:80"
+    depends_on:
+      - balise-sdk-service
+
+  # CMA-CGM Integration Service
+  cmacgm-integration:
+    build:
+      context: ./cma-cgm
+      dockerfile: docker/Dockerfile
+      args:
+        - CACHE_BUST=2025-07-21-09-05-PORT-8081-FIX
+    container_name: cmacgm-integration
+    ports:
+      - "6064:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://balise-postgres:5432/balisedb
+      - SPRING_DATASOURCE_USERNAME=adminbdb
+      - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
+      - CMACGM_AUTH_URL=https://auth-pre.cma-cgm.com/as/token.oauth2
+      - CMACGM_API_BASE_URL=https://apis-uat.cma-cgm.net/technical/generic/eagle/v1
+      - CMACGM_CLIENT_ID=beapp-sinigroup
+      - CMACGM_CLIENT_SECRET=YChnAz1dI2gvr40BMOyQWIeYT83DdtitHYfDmGd04xG5llcugV9NvfeihE72s1cJ
+      - CMACGM_SCOPE=tracking:write:be
+      - SERVER_PORT=8081
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8081 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      balise-postgres:
+        condition: service_healthy
+      balise-sdk-service:
+        condition: service_healthy
+
+  # PostgreSQL database with PostGIS extension
+  balise-postgres:
+    image: postgis/postgis:14-3.3
+    container_name: balise-postgres
+    ports:
+      - "6063:5432"
+    environment:
+      - POSTGRES_USER=adminbdb
+      - POSTGRES_PASSWORD=To7Z2UCeWTsriPxbADX8
+      - POSTGRES_DB=balisedb
+    volumes:
+      - ./database/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U adminbdb -d balisedb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

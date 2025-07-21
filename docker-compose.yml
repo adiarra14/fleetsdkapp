@@ -3,7 +3,7 @@ services:
   balise-sdk-service:
     build:
       context: ./backend-service
-      dockerfile: Dockerfile.simple
+      dockerfile: Dockerfile.jar
       args:
         - CACHE_BUST=2025-07-21-11-05-NO-MAVEN
     container_name: balise-sdk-service

@@ -94,19 +94,19 @@ public class BaliseAssignmentController {
             
             // CMA-CGM assigned balises
             Integer cmacgm = jdbcTemplate.queryForObject(
-                """SELECT COUNT(*) FROM balise_customer_assignments bca
-                   JOIN customers c ON bca.customer_id = c.id
-                   WHERE c.code = 'CMACGM' AND bca.sync_enabled = true""", 
+                "SELECT COUNT(*) FROM balise_customer_assignments bca " +
+                "JOIN customers c ON bca.customer_id = c.id " +
+                "WHERE c.code = 'CMACGM' AND bca.sync_enabled = true", 
                 Integer.class);
             stats.put("cmacgm", cmacgm);
             
             // Unassigned balises
             Integer unassigned = jdbcTemplate.queryForObject(
-                """SELECT COUNT(*) FROM balises b
-                   WHERE NOT EXISTS (
-                       SELECT 1 FROM balise_customer_assignments bca 
-                       WHERE bca.balise_id = b.id AND bca.sync_enabled = true
-                   )""", 
+                "SELECT COUNT(*) FROM balises b " +
+                "WHERE NOT EXISTS (" +
+                "    SELECT 1 FROM balise_customer_assignments bca " +
+                "    WHERE bca.balise_id = b.id AND bca.sync_enabled = true" +
+                ")", 
                 Integer.class);
             stats.put("unassigned", unassigned);
             
