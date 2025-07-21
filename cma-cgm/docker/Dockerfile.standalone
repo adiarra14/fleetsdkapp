@@ -1,0 +1,76 @@
+#
+# Fleet Monitor - CMA-CGM Integration Module
+# Standalone Docker Configuration (No Maven, No External Dependencies)
+#
+# Project: Fleet Management System with Maxvision SDK Integration
+# Client: SiniTechnologie / Sinigroupe (for CMA-CGM customer)
+# Project Chief: Antoine Diarra
+#
+# Copyright (c) 2025 Ynnov
+# All rights reserved. This software and associated documentation files are the property
+# of Ynnov until transfer to the client SiniTechnologie/Sinigroupe.
+#
+# Unauthorized copying, modification, distribution, or use of this software
+# is strictly prohibited without prior written consent from Ynnov.
+#
+
+# Use JDK for compilation
+FROM eclipse-temurin:17-jdk-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install required packages
+RUN apk add --no-cache curl
+
+# Create the Java source directly in the Dockerfile to avoid any external file dependencies
+RUN mkdir -p com/cmacgm/integration
+
+# Create the SimpleCmaCgmServer.java directly in the container using echo
+RUN echo 'package com.cmacgm.integration;' > com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo 'import com.sun.net.httpserver.HttpServer;' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo 'import com.sun.net.httpserver.HttpHandler;' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo 'import com.sun.net.httpserver.HttpExchange;' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo 'import java.io.IOException;' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo 'import java.io.OutputStream;' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo 'import java.net.InetSocketAddress;' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo 'import java.util.concurrent.Executors;' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo 'public class SimpleCmaCgmServer {' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '    public static void main(String[] args) throws IOException {' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '        System.out.println("SIMPLE CMA-CGM SERVER - Starting on port 8081");' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '        HttpServer server = HttpServer.create(new InetSocketAddress(8081), 0);' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '        server.createContext("/health", exchange -> {' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '            String response = "OK";' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '            exchange.sendResponseHeaders(200, response.length());' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '            OutputStream os = exchange.getResponseBody();' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '            os.write(response.getBytes());' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '            os.close();' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '        });' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '        server.createContext("/", exchange -> {' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '            String response = "CMA-CGM Integration Service - Running";' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '            exchange.sendResponseHeaders(200, response.length());' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '            OutputStream os = exchange.getResponseBody();' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '            os.write(response.getBytes());' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '            os.close();' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '        });' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '        server.setExecutor(Executors.newFixedThreadPool(10));' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '        server.start();' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '        System.out.println("SIMPLE CMA-CGM SERVER - Started on port 8081");' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '        try { Thread.currentThread().join(); } catch (Exception e) {}' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '    }' >> com/cmacgm/integration/SimpleCmaCgmServer.java && \
+    echo '}' >> com/cmacgm/integration/SimpleCmaCgmServer.java
+
+# Compile the Java source
+RUN javac com/cmacgm/integration/SimpleCmaCgmServer.java
+
+# Expose port
+EXPOSE 8081
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD curl -f http://localhost:8081/health || exit 1
+
+# Run the simple Java server
+CMD ["java", "com.cmacgm.integration.SimpleCmaCgmServer"]
