@@ -67,9 +67,9 @@ services:
   cmacgm-integration:
     build:
       context: ./cma-cgm
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.nomaven
       args:
-        - CACHE_BUST=2025-07-21-09-05-PORT-8081-FIX
+        - CACHE_BUST=2025-07-21-09-45-NOMAVEN-FIX
     container_name: cmacgm-integration
     ports:
       - "6064:8081"

@@ -1,0 +1,43 @@
+#
+# Fleet Monitor - CMA-CGM Integration Module
+# Docker Configuration (No Maven Build)
+#
+# Project: Fleet Management System with Maxvision SDK Integration
+# Client: SiniTechnologie / Sinigroupe (for CMA-CGM customer)
+# Project Chief: Antoine Diarra
+#
+# Copyright (c) 2025 Ynnov
+# All rights reserved. This software and associated documentation files are the property
+# of Ynnov until transfer to the client SiniTechnologie/Sinigroupe.
+#
+# Unauthorized copying, modification, distribution, or use of this software
+# is strictly prohibited without prior written consent from Ynnov.
+#
+
+# Simple Java runtime for CMA-CGM Integration Service
+FROM eclipse-temurin:17-jdk-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install required packages
+RUN apk add --no-cache curl
+
+# Copy source files with proper directory structure
+COPY src/main/java ./src/main/java
+
+# Create directories
+RUN mkdir -p com/cmacgm/integration
+
+# Compile Java code directly (no Maven)
+RUN javac -d . src/main/java/com/cmacgm/integration/SimpleCmaCgmServer.java
+
+# Expose port
+EXPOSE 8081
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+    CMD curl -f http://localhost:8081/health || exit 1
+
+# Run the simple Java server
+CMD ["java", "com.cmacgm.integration.SimpleCmaCgmServer"]
