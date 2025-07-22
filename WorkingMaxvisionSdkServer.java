@@ -359,7 +359,9 @@ public class WorkingMaxvisionSdkServer {
             try (PreparedStatement stmt = conn.prepareStatement(eventSql)) {
                 stmt.setString(1, deviceId);
                 stmt.setString(2, "RAW_DATA");
-                stmt.setString(3, "IP: " + clientIP + " | Data: " + rawData);
+                // Clean binary data for UTF8 storage
+                String cleanData = cleanBinaryData(rawData);
+                stmt.setString(3, "IP: " + clientIP + " | Data: " + cleanData);
                 stmt.executeUpdate();
                 System.out.println("✅ Stored raw message: " + deviceId);
             }
@@ -397,5 +399,23 @@ public class WorkingMaxvisionSdkServer {
         } catch (NumberFormatException e) {
             return defaultValue;
         }
+    }
+    
+    private String cleanBinaryData(String data) {
+        if (data == null) return "";
+        
+        // Remove null bytes and other binary characters that cause UTF8 issues
+        StringBuilder cleaned = new StringBuilder();
+        for (char c : data.toCharArray()) {
+            if (c >= 32 && c <= 126) { // Printable ASCII
+                cleaned.append(c);
+            } else if (c == '\n' || c == '\r' || c == '\t') { // Keep common whitespace
+                cleaned.append(c);
+            } else {
+                // Replace binary chars with hex representation
+                cleaned.append(String.format("[0x%02X]", (int) c));
+            }
+        }
+        return cleaned.toString();
     }
 }
