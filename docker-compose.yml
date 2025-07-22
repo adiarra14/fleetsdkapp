@@ -25,13 +25,13 @@ services:
     depends_on:
       - balise-postgres
 
-  # TCP server for balise connections - ENHANCED WITH GPS EXTRACTION
+  # TCP server for balise connections - REAL SDK NETTY SERVER ONLY
   balise-tcp-server:
     build:
       context: .
-      dockerfile: Dockerfile.working-sdk
+      dockerfile: Dockerfile.real-sdk
       args:
-        - CACHE_BUST=2025-07-22-22-40-GPS-ENHANCED
+        - CACHE_BUST=2025-07-23-00-05-REAL-SDK-NETTY
     container_name: balise-tcp-server
     ports:
       - "8910:8910"  # SDK STANDARD PORT for TY5201-LOCK messages

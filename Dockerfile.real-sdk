@@ -5,10 +5,7 @@ WORKDIR /app
 # Install necessary utilities
 RUN apk add --no-cache bash curl
 
-# Copy the real SDK server implementation
-COPY RealMaxvisionSdkServer.java .
-
-# Copy SDK configuration files
+# Copy SDK configuration files ONLY (no custom Java server code)
 COPY application.yml .
 COPY logback-spring.xml .
 
@@ -33,14 +30,11 @@ RUN mkdir -p /app/lib && \
 # Create logs directory
 RUN mkdir -p /app/logs
 
-# Compile the Java application
-RUN javac -cp "/app/lib/*" RealMaxvisionSdkServer.java
-
-# Create startup script
+# Create startup script to launch SDK Netty server main class
 RUN echo '#!/bin/bash' > start.sh && \
-    echo 'echo "=== STARTING REAL MAXVISION SDK SERVER ==="' >> start.sh && \
-    echo 'echo "=== NO MOCK - FULL SDK INTEGRATION ==="' >> start.sh && \
-    echo 'java -cp "/app/lib/*:." RealMaxvisionSdkServer' >> start.sh && \
+    echo 'echo "=== STARTING REAL MAXVISION SDK NETTY SERVER ==="' >> start.sh && \
+    echo 'echo "=== FULL SDK INTEGRATION - NO MOCK ==="' >> start.sh && \
+    echo 'java -cp "/app/lib/*:." com.maxvision.edge.gateway.lock.LockProtocolGatewayApplication' >> start.sh && \
     chmod +x start.sh
 
 # Health check
