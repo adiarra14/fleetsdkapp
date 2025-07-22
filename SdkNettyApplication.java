@@ -2,20 +2,34 @@ package com.maxvision.fleet.sdk;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.jdbc.core.JdbcTemplate;
+import javax.sql.DataSource;
 
 @SpringBootApplication
+@EnableAutoConfiguration
 @ComponentScan(basePackages = {
     "com.maxvision.fleet.sdk",
     "com.maxvision.edge.gateway"
 }, nameGenerator = SdkNettyApplication.CustomBeanNameGenerator.class)
 public class SdkNettyApplication {
+
+    // Configuration class to ensure JdbcTemplate bean is created
+    @Configuration
+    public static class DatabaseConfiguration {
+        @Bean
+        public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+            return new JdbcTemplate(dataSource);
+        }
+    }
 
     public static void main(String[] args) {
         System.out.println("=== STARTING REAL MAXVISION SDK NETTY SERVER ===");
