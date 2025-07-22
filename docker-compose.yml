@@ -31,7 +31,7 @@ services:
       context: .
       dockerfile: Dockerfile.real-sdk
       args:
-        - CACHE_BUST=2025-07-22-20-18-REAL-SDK
+        - CACHE_BUST=2025-07-22-20-49-FORCE-REAL-SDK-NOW
     container_name: balise-tcp-server
     ports:
       - "6060:6060"
