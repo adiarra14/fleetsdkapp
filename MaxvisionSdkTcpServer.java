@@ -298,159 +298,216 @@ public class MaxvisionSdkTcpServer {
         return info;
     }
     
-    private static void storeBaliseData(BaliseDataInfo info) {
-        System.out.println("[SDK-v2] Storing balise data from " + info.clientIP + " for device " + info.deviceId);
-        
-        if (info.deviceId == null) {
-            System.err.println("[SDK-v2] Cannot store data: deviceId is null");
+    // New SDK-based implementation to handle Map<String, Object> data from SDK
+    private static void storeBaliseData(Map<String, Object> data) {
+        if (data == null || data.isEmpty()) {
+            System.err.println("[SDK-v2] No balise data to store");
             return;
         }
         
-        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
-            // Check if balise exists
-            int baliseId = -1;
-            String checkSql = "SELECT id FROM balises WHERE device_id = ?";
+        // Extract key fields
+        String deviceId = data.containsKey("deviceId") ? data.get("deviceId").toString() : "unknown";
+        String clientIp = data.containsKey("clientIp") ? data.get("clientIp").toString() : "unknown";
+        String messageType = data.containsKey("messageType") ? data.get("messageType").toString() : "unknown";
+        
+        try {
+            System.out.println("[SDK-v2] Storing balise data for device: " + deviceId);
             
-            try (PreparedStatement pstmt = conn.prepareStatement(checkSql)) {
-                pstmt.setString(1, info.deviceId);
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    if (rs.next()) {
-                        baliseId = rs.getInt("id");
-                    }
-                }
-            }
-            
-            if (baliseId == -1) {
-                // Insert new balise
-                String insertSql = "INSERT INTO balises (device_id, serial_number, model, firmware_version, " +
-                                  "status, last_seen, last_ip, latitude, longitude, battery_level) " +
-                                  "VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?) RETURNING id";
+            // Connect to PostgreSQL
+            try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+                // Insert or update balise data
+                String sql = "INSERT INTO balises (device_id, serial_number, model, firmware_version, "
+                    + "last_ip, last_seen, latitude, longitude, battery_level, status) "
+                    + "VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?) "
+                    + "ON CONFLICT (device_id) DO UPDATE SET "
+                    + "last_ip = EXCLUDED.last_ip, "
+                    + "last_seen = EXCLUDED.last_seen";
                 
-                try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
-                    pstmt.setString(1, info.deviceId);
-                    pstmt.setString(2, info.serialNumber);
-                    pstmt.setString(3, info.model);
-                    pstmt.setString(4, info.firmwareVersion);
-                    pstmt.setString(5, info.status);
-                    pstmt.setString(6, info.clientIP);
+                // Handle optional fields
+                boolean hasLocation = data.containsKey("latitude") && data.containsKey("longitude");
+                boolean hasBattery = data.containsKey("batteryLevel") || data.containsKey("voltagePercentage");
+                boolean hasStatus = data.containsKey("status") || data.containsKey("lockStatus");
+                
+                if (hasLocation) {
+                    sql += ", latitude = EXCLUDED.latitude, longitude = EXCLUDED.longitude";
+                }
+                
+                if (hasBattery) {
+                    sql += ", battery_level = EXCLUDED.battery_level";
+                }
+                
+                if (hasStatus) {
+                    sql += ", status = EXCLUDED.status";
+                }
+                
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    // Required fields
+                    stmt.setString(1, deviceId);
+                    stmt.setString(2, data.containsKey("serialNumber") ? data.get("serialNumber").toString() : null);
+                    stmt.setString(3, data.containsKey("model") ? data.get("model").toString() : "TY5201-LOCK");
+                    stmt.setString(4, data.containsKey("firmwareVersion") ? data.get("firmwareVersion").toString() : null);
+                    stmt.setString(5, clientIp);
                     
-                    // Set location if available, otherwise null
-                    if (info.latitude != null && info.longitude != null) {
-                        pstmt.setDouble(7, info.latitude);
-                        pstmt.setDouble(8, info.longitude);
-                    } else {
-                        pstmt.setNull(7, java.sql.Types.DOUBLE);
-                        pstmt.setNull(8, java.sql.Types.DOUBLE);
-                    }
-                    
-                    if (info.batteryLevel != null) {
-                        pstmt.setInt(9, info.batteryLevel);
-                    } else {
-                        pstmt.setNull(9, java.sql.Types.INTEGER);
-                    }
-                    
-                    try (ResultSet rs = pstmt.executeQuery()) {
-                        if (rs.next()) {
-                            baliseId = rs.getInt(1);
-                            System.out.println("[SDK-v2] Created new balise with ID: " + baliseId);
+                    // Optional fields
+                    if (hasLocation) {
+                        double lat = 0.0;
+                        double lon = 0.0;
+                        try {
+                            lat = data.containsKey("latitude") ? Double.parseDouble(data.get("latitude").toString()) : 0.0;
+                            lon = data.containsKey("longitude") ? Double.parseDouble(data.get("longitude").toString()) : 0.0;
+                        } catch (NumberFormatException nfe) {
+                            System.err.println("[SDK-v2] Invalid location format: " + nfe.getMessage());
                         }
-                    }
-                }
-            } else {
-                // Update existing balise
-                StringBuilder updateSql = new StringBuilder("UPDATE balises SET last_seen = CURRENT_TIMESTAMP, last_ip = ?");
-                
-                if (info.latitude != null && info.longitude != null) {
-                    updateSql.append(", latitude = ?, longitude = ?");
-                }
-                
-                if (info.batteryLevel != null) {
-                    updateSql.append(", battery_level = ?");
-                }
-                
-                if (info.firmwareVersion != null) {
-                    updateSql.append(", firmware_version = ?");
-                }
-                
-                if (info.status != null) {
-                    updateSql.append(", status = ?");
-                }
-                
-                updateSql.append(" WHERE id = ?");
-                
-                try (PreparedStatement pstmt = conn.prepareStatement(updateSql.toString())) {
-                    int paramIndex = 1;
-                    pstmt.setString(paramIndex++, info.clientIP);
-                    
-                    if (info.latitude != null && info.longitude != null) {
-                        pstmt.setDouble(paramIndex++, info.latitude);
-                        pstmt.setDouble(paramIndex++, info.longitude);
+                        stmt.setDouble(6, lat);
+                        stmt.setDouble(7, lon);
+                    } else {
+                        stmt.setNull(6, java.sql.Types.DOUBLE);
+                        stmt.setNull(7, java.sql.Types.DOUBLE);
                     }
                     
-                    if (info.batteryLevel != null) {
-                        pstmt.setInt(paramIndex++, info.batteryLevel);
+                    // Battery level
+                    if (hasBattery) {
+                        int batteryLevel = 0;
+                        try {
+                            if (data.containsKey("batteryLevel")) {
+                                batteryLevel = Integer.parseInt(data.get("batteryLevel").toString());
+                            } else if (data.containsKey("voltagePercentage")) {
+                                batteryLevel = Integer.parseInt(data.get("voltagePercentage").toString());
+                            }
+                        } catch (NumberFormatException nfe) {
+                            System.err.println("[SDK-v2] Invalid battery format: " + nfe.getMessage());
+                        }
+                        stmt.setInt(8, batteryLevel);
+                    } else {
+                        stmt.setNull(8, java.sql.Types.INTEGER);
                     }
                     
-                    if (info.firmwareVersion != null) {
-                        pstmt.setString(paramIndex++, info.firmwareVersion);
+                    // Status
+                    String status = "ACTIVE";
+                    if (data.containsKey("status")) {
+                        status = data.get("status").toString();
+                    } else if (data.containsKey("lockStatus")) {
+                        status = data.get("lockStatus").toString();
+                    }
+                    stmt.setString(9, status);
+                    
+                    int rowsAffected = stmt.executeUpdate();
+                    System.out.println("[SDK-v2] Database updated: " + rowsAffected + " rows affected");
+                }
+                
+                // Also insert a history record
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "INSERT INTO balise_events (balise_id, event_type, event_time, latitude, longitude, battery_level, message_raw) "
+                        + "VALUES ((SELECT id FROM balises WHERE device_id = ?), ?, CURRENT_TIMESTAMP, ?, ?, ?, ?)")) {
+                    stmt.setString(1, deviceId);
+                    
+                    // Determine event type based on available data
+                    String eventType;
+                    if (hasLocation) {
+                        eventType = "LOCATION_UPDATE";
+                    } else if (hasBattery) {
+                        eventType = "BATTERY_UPDATE";
+                    } else {
+                        eventType = "DATA_RECEIVED";
+                    }
+                    stmt.setString(2, eventType);
+                    
+                    // Set location if available
+                    if (hasLocation) {
+                        try {
+                            double lat = Double.parseDouble(data.get("latitude").toString());
+                            double lon = Double.parseDouble(data.get("longitude").toString());
+                            stmt.setDouble(3, lat);
+                            stmt.setDouble(4, lon);
+                        } catch (Exception ex) {
+                            stmt.setNull(3, java.sql.Types.DOUBLE);
+                            stmt.setNull(4, java.sql.Types.DOUBLE);
+                        }
+                    } else {
+                        stmt.setNull(3, java.sql.Types.DOUBLE);
+                        stmt.setNull(4, java.sql.Types.DOUBLE);
                     }
                     
-                    if (info.status != null) {
-                        pstmt.setString(paramIndex++, info.status);
+                    // Set battery if available
+                    if (hasBattery) {
+                        try {
+                            int battery;
+                            if (data.containsKey("batteryLevel")) {
+                                battery = Integer.parseInt(data.get("batteryLevel").toString());
+                            } else {
+                                battery = Integer.parseInt(data.get("voltagePercentage").toString());
+                            }
+                            stmt.setInt(5, battery);
+                        } catch (Exception ex) {
+                            stmt.setNull(5, java.sql.Types.INTEGER);
+                        }
+                    } else {
+                        stmt.setNull(5, java.sql.Types.INTEGER);
                     }
                     
-                    pstmt.setInt(paramIndex, baliseId);
-                    int rowsUpdated = pstmt.executeUpdate();
-                    System.out.println("[SDK-v2] Updated balise with ID: " + baliseId + " (" + rowsUpdated + " rows)");
+                    // Store raw message as JSON
+                    String jsonData = convertMessageDataToJson(data);
+                    stmt.setString(6, jsonData);
+                    
+                    stmt.executeUpdate();
+                    System.out.println("[SDK-v2] Event record created for device: " + deviceId);
                 }
             }
-            
-            // Insert event record
-            String eventSql = "INSERT INTO balise_events (balise_id, event_type, event_time, latitude, longitude, " +
-                             "battery_level, message_raw) VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?)";
-            
-            try (PreparedStatement pstmt = conn.prepareStatement(eventSql)) {
-                pstmt.setInt(1, baliseId);
-                
-                // Determine event type based on available data
-                String eventType;
-                if (info.latitude != null && info.longitude != null) {
-                    eventType = "LOCATION_UPDATE";
-                } else if (info.batteryLevel != null) {
-                    eventType = "BATTERY_UPDATE";
-                } else {
-                    eventType = "HEARTBEAT";
-                }
-                pstmt.setString(2, eventType);
-                
-                // Set location if available
-                if (info.latitude != null && info.longitude != null) {
-                    pstmt.setDouble(3, info.latitude);
-                    pstmt.setDouble(4, info.longitude);
-                } else {
-                    pstmt.setNull(3, java.sql.Types.DOUBLE);
-                    pstmt.setNull(4, java.sql.Types.DOUBLE);
-                }
-                
-                // Set battery if available
-                if (info.batteryLevel != null) {
-                    pstmt.setInt(5, info.batteryLevel);
-                } else {
-                    pstmt.setNull(5, java.sql.Types.INTEGER);
-                }
-                
-                // Store raw message for debugging
-                pstmt.setString(6, "SDK Processed Data"); 
-                
-                int rowsInserted = pstmt.executeUpdate();
-                System.out.println("[SDK-v2] Inserted " + rowsInserted + " event records");
-            }
-            
-            System.out.println("[SDK-v2] Successfully processed balise data");
-            
-        } catch (SQLException e) {
-            System.err.println("[SDK-v2] Database error: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("[SDK-v2] Error storing balise data: " + e.getMessage());
             e.printStackTrace();
+            
+            // Log the data that failed to store
+            System.err.println("[SDK-v2] Failed data: " + data);
         }
     }
+
+// Helper method to convert data map to JSON string for history records
+private static String convertMessageDataToJson(Map<String, Object> data) {
+    StringBuilder json = new StringBuilder();
+    json.append("{");
+
+    boolean first = true;
+    for (Map.Entry<String, Object> entry : data.entrySet()) {
+        if (!first) json.append(",");
+
+        json.append("\"" + entry.getKey() + "\":");
+
+        Object value = entry.getValue();
+        if (value instanceof String) {
+            json.append("\"" + value + "\"");
+        } else if (value instanceof Number || value instanceof Boolean) {
+            json.append(value.toString());
+        } else if (value == null) {
+            json.append("null");
+        } else {
+            // For complex objects, just use toString() in quotes
+            json.append("\"" + value.toString() + "\"");
+        }
+
+        first = false;
+    }
+
+    json.append("}");
+    return json.toString();
+}
+
+// Original method for backwards compatibility
+private static void storeBaliseData(BaliseDataInfo info) {
+    // Convert BaliseDataInfo to Map for the new implementation
+    Map<String, Object> dataMap = new HashMap<>();
+    dataMap.put("deviceId", info.deviceId);
+    dataMap.put("serialNumber", info.serialNumber);
+    dataMap.put("model", info.model);
+    dataMap.put("firmwareVersion", info.firmwareVersion);
+    dataMap.put("clientIp", info.clientIP);
+    dataMap.put("latitude", info.latitude);
+    dataMap.put("longitude", info.longitude);
+    dataMap.put("batteryLevel", info.batteryLevel);
+    dataMap.put("status", info.status);
+
+    // Call new implementation
+    storeBaliseData(dataMap);
+}
+
 }
