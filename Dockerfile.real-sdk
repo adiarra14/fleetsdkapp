@@ -24,7 +24,11 @@ COPY lib/maxvision-edge-protocol-gateway-service-sdk.jar ./lib/
 RUN mkdir -p /app/lib && \
     curl -o /app/lib/postgresql-42.7.4.jar https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.4/postgresql-42.7.4.jar && \
     curl -o /app/lib/lombok-1.18.24.jar https://repo1.maven.org/maven2/org/projectlombok/lombok/1.18.24/lombok-1.18.24.jar && \
-    curl -o /app/lib/netty-all-4.1.78.Final.jar https://repo1.maven.org/maven2/io/netty/netty-all/4.1.78.Final/netty-all-4.1.78.Final.jar && \
+    curl -o /app/lib/netty-common-4.1.78.Final.jar https://repo1.maven.org/maven2/io/netty/netty-common/4.1.78.Final/netty-common-4.1.78.Final.jar && \
+    curl -o /app/lib/netty-buffer-4.1.78.Final.jar https://repo1.maven.org/maven2/io/netty/netty-buffer/4.1.78.Final/netty-buffer-4.1.78.Final.jar && \
+    curl -o /app/lib/netty-transport-4.1.78.Final.jar https://repo1.maven.org/maven2/io/netty/netty-transport/4.1.78.Final/netty-transport-4.1.78.Final.jar && \
+    curl -o /app/lib/netty-codec-4.1.78.Final.jar https://repo1.maven.org/maven2/io/netty/netty-codec/4.1.78.Final/netty-codec-4.1.78.Final.jar && \
+    curl -o /app/lib/netty-handler-4.1.78.Final.jar https://repo1.maven.org/maven2/io/netty/netty-handler/4.1.78.Final/netty-handler-4.1.78.Final.jar && \
     curl -o /app/lib/caffeine-3.1.8.jar https://repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/3.1.8/caffeine-3.1.8.jar && \
     curl -o /app/lib/hutool-all-5.7.3.jar https://repo1.maven.org/maven2/cn/hutool/hutool-all/5.7.3/hutool-all-5.7.3.jar && \
     curl -o /app/lib/commons-lang3-3.12.0.jar https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar && \
