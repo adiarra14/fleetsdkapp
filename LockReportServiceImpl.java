@@ -1,6 +1,5 @@
 package com.maxvision.fleet.sdk;
 
-import com.maxvision.edge.gateway.sdk.report.LockReportService;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -10,14 +9,13 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Service
-public class LockReportServiceImpl implements LockReportService {
+public class LockReportServiceImpl {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Override
     public void reportLockMsg(String jsonStr) {
         System.out.println("=== SDK PARSED MESSAGE RECEIVED ===");
         System.out.println("JSON: " + jsonStr);

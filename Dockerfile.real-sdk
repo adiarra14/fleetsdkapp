@@ -17,7 +17,7 @@ COPY LockSettingServiceImpl.java .
 # Copy the SDK JAR (postgresql will be downloaded)
 COPY lib/maxvision-edge-protocol-gateway-service-sdk.jar ./lib/
 
-# Download required dependencies for SDK
+# Download required dependencies for SDK and Spring Boot
 RUN mkdir -p /app/lib && \
     curl -o /app/lib/postgresql-42.7.4.jar https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.4/postgresql-42.7.4.jar && \
     curl -o /app/lib/lombok-1.18.24.jar https://repo1.maven.org/maven2/org/projectlombok/lombok/1.18.24/lombok-1.18.24.jar && \
@@ -28,9 +28,14 @@ RUN mkdir -p /app/lib && \
     curl -o /app/lib/guava-28.1-jre.jar https://repo1.maven.org/maven2/com/google/guava/guava/28.1-jre/guava-28.1-jre.jar && \
     curl -o /app/lib/spring-boot-starter-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter/2.7.0/spring-boot-starter-2.7.0.jar && \
     curl -o /app/lib/spring-boot-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot/2.7.0/spring-boot-2.7.0.jar && \
+    curl -o /app/lib/spring-boot-autoconfigure-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-autoconfigure/2.7.0/spring-boot-autoconfigure-2.7.0.jar && \
     curl -o /app/lib/spring-context-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-context/5.3.21/spring-context-5.3.21.jar && \
+    curl -o /app/lib/spring-core-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-core/5.3.21/spring-core-5.3.21.jar && \
+    curl -o /app/lib/spring-beans-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-beans/5.3.21/spring-beans-5.3.21.jar && \
+    curl -o /app/lib/spring-jdbc-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-jdbc/5.3.21/spring-jdbc-5.3.21.jar && \
     curl -o /app/lib/jackson-databind-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.13.3/jackson-databind-2.13.3.jar && \
-    curl -o /app/lib/jackson-core-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.13.3/jackson-core-2.13.3.jar
+    curl -o /app/lib/jackson-core-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.13.3/jackson-core-2.13.3.jar && \
+    curl -o /app/lib/jackson-annotations-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.13.3/jackson-annotations-2.13.3.jar
 
 # Create logs directory
 RUN mkdir -p /app/logs
