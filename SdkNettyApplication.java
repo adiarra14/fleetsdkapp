@@ -30,9 +30,10 @@ public class SdkNettyApplication {
         public String generateBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
             String className = definition.getBeanClassName();
             if (className != null) {
-                return className.substring(className.lastIndexOf('.') + 1).toLowerCase();
+                // Use full class path to avoid conflicts with obfuscated SDK classes
+                return className.replace('.', '_').toLowerCase();
             }
-            return "unknownBean";
+            return "unknownBean_" + System.currentTimeMillis();
         }
     }
 }
