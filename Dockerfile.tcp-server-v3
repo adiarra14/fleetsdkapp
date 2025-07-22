@@ -3,11 +3,14 @@ FROM eclipse-temurin:17-jdk-alpine
 WORKDIR /tcp-server
 
 # Install necessary utilities
-RUN apk add --no-cache bash curl jq
+RUN apk add --no-cache bash curl jq wget
 
-# Copy necessary files
+# Copy our server implementation
 COPY MaxvisionSimpleTcpServer.java .
-COPY lib/postgresql.jar .
+
+# Download PostgreSQL JDBC driver directly (much more reliable than copying)
+RUN echo "Downloading PostgreSQL JDBC driver..." && \
+    wget https://jdbc.postgresql.org/download/postgresql-42.5.0.jar -O postgresql.jar
 
 # Create database schema file
 RUN echo "CREATE TABLE IF NOT EXISTS balises ( \
