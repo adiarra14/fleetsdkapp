@@ -18,8 +18,8 @@ RUN wget -O /app/lib/postgresql.jar https://jdbc.postgresql.org/download/postgre
 COPY tcp-server-service/src/main/java/ /app/src/main/java/
 COPY tcp-server-service/src/main/resources/ /app/src/main/resources/
 
-# Copy the Maxvision SDK TCP server implementation
-COPY MaxvisionSdkTcpServer.java /app/MaxvisionSdkTcpServer.java
+# Copy the Fixed SDK TCP server implementation
+COPY FixedMaxvisionSdkTcpServer.java /app/FixedMaxvisionSdkTcpServer.java
 
 # Create directories for SDK interfaces
 RUN mkdir -p /app/com/maxvision/edge/gateway/lock/netty/handler/model
@@ -33,8 +33,8 @@ COPY LockProtocolServer.java /app/com/maxvision/edge/gateway/lock/netty/LockProt
 RUN javac /app/com/maxvision/edge/gateway/lock/netty/handler/model/MessageHandler.java
 RUN javac -cp "/app" /app/com/maxvision/edge/gateway/lock/netty/LockProtocolServer.java
 
-# Compile the Maxvision SDK TCP server with proper database and SDK integration
-RUN javac -cp "/app/lib/*:/app" /app/MaxvisionSdkTcpServer.java
+# Compile the Fixed SDK TCP Server with proper error handling
+RUN javac -cp "/app/lib/*:/app" /app/FixedMaxvisionSdkTcpServer.java
 
 # Create startup script for the enhanced TCP server
 RUN echo '#!/bin/sh' > /app/start.sh && \
@@ -43,16 +43,16 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'ls -la /app' >> /app/start.sh && \
     echo 'echo "==== Lib directory contents ====="' >> /app/start.sh && \
     echo 'ls -la /app/lib' >> /app/start.sh && \
-    echo 'echo "==== Starting Maxvision SDK TCP Server v2.0 with Full SDK Integration ===="' >> /app/start.sh && \
-    echo 'java -cp "/app/lib/*:/app" MaxvisionSdkTcpServer &' >> /app/start.sh && \
+    echo 'echo "==== Starting Fixed Maxvision SDK TCP Server v2.1 ===="' >> /app/start.sh && \
+    echo 'java -cp "/app/lib/*:/app" FixedMaxvisionSdkTcpServer &' >> /app/start.sh && \
     echo 'JAVA_PID=$!' >> /app/start.sh && \
-    echo 'echo "Maxvision SDK TCP Server v2.0 started with PID: $JAVA_PID"' >> /app/start.sh && \
+    echo 'echo "Fixed Maxvision SDK TCP Server started with PID: $JAVA_PID"' >> /app/start.sh && \
     echo 'sleep 10' >> /app/start.sh && \
     echo 'if kill -0 $JAVA_PID 2>/dev/null; then' >> /app/start.sh && \
-    echo '    echo "Maxvision SDK TCP Server v2.0 is running successfully"' >> /app/start.sh && \
+    echo '    echo "Fixed Maxvision SDK TCP Server is running successfully"' >> /app/start.sh && \
     echo '    echo "TCP Server should be active on port 6060"' >> /app/start.sh && \
     echo 'else' >> /app/start.sh && \
-    echo '    echo "ERROR: Maxvision SDK TCP Server failed to start"' >> /app/start.sh && \
+    echo '    echo "ERROR: Fixed Maxvision SDK TCP Server failed to start"' >> /app/start.sh && \
     echo '    echo "Checking for compilation errors..."' >> /app/start.sh && \
     echo '    find /app -name "*.class" | head -10' >> /app/start.sh && \
     echo 'fi' >> /app/start.sh && \
