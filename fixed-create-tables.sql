@@ -34,9 +34,4 @@ CREATE TABLE IF NOT EXISTS containers (
     assigned_at TIMESTAMP DEFAULT NOW()
 );
 
--- Insert some sample balises to ensure the database has data
-INSERT INTO balises (device_id, name, status, battery_level)
-VALUES 
-('BALISE001', 'Test Balise 1', 'ACTIVE', 95),
-('BALISE002', 'Test Balise 2', 'ACTIVE', 87)
-ON CONFLICT (device_id) DO NOTHING;
+-- No test data - only real balise transmissions will populate the tables
