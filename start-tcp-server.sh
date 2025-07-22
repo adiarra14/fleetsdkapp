@@ -30,10 +30,15 @@ echo "Maxvision Simple TCP Server started with PID: $SERVER_PID"
 # Monitor the application
 echo "Keeping container alive for monitoring"
 while true; do
-    if ! ps -p $SERVER_PID > /dev/null; then
+    # Check if server is still running using a different method
+    if ! kill -0 $SERVER_PID 2>/dev/null; then
         echo "Server process died, restarting..."
+        # Kill any existing processes on port 6060 before restarting
+        pkill -f MaxvisionSimpleTcpServer || true
+        sleep 2
         java -cp .:postgresql.jar MaxvisionSimpleTcpServer &
         SERVER_PID=$!
+        echo "Server restarted with new PID: $SERVER_PID"
     fi
-    sleep 10
+    sleep 30
 done
