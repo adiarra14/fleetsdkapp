@@ -1,0 +1,54 @@
+FROM eclipse-temurin:17-jdk-alpine
+
+WORKDIR /app
+
+# Install necessary utilities
+RUN apk add --no-cache bash curl
+
+# Copy the real SDK server implementation
+COPY RealMaxvisionSdkServer.java .
+
+# Copy SDK configuration files
+COPY application.yml .
+COPY logback-spring.xml .
+
+# Copy the SDK JAR and dependencies
+COPY lib/maxvision-edge-protocol-gateway-service-sdk.jar ./lib/
+COPY lib/postgresql-42.7.4.jar ./lib/
+
+# Download required dependencies for SDK
+RUN mkdir -p /app/lib && \
+    curl -o /app/lib/lombok-1.18.24.jar https://repo1.maven.org/maven2/org/projectlombok/lombok/1.18.24/lombok-1.18.24.jar && \
+    curl -o /app/lib/netty-all-4.1.78.Final.jar https://repo1.maven.org/maven2/io/netty/netty-all/4.1.78.Final/netty-all-4.1.78.Final.jar && \
+    curl -o /app/lib/caffeine-3.1.8.jar https://repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/3.1.8/caffeine-3.1.8.jar && \
+    curl -o /app/lib/hutool-all-5.7.3.jar https://repo1.maven.org/maven2/cn/hutool/hutool-all/5.7.3/hutool-all-5.7.3.jar && \
+    curl -o /app/lib/commons-lang3-3.12.0.jar https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar && \
+    curl -o /app/lib/guava-28.1-jre.jar https://repo1.maven.org/maven2/com/google/guava/guava/28.1-jre/guava-28.1-jre.jar && \
+    curl -o /app/lib/spring-boot-starter-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter/2.7.0/spring-boot-starter-2.7.0.jar && \
+    curl -o /app/lib/spring-boot-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot/2.7.0/spring-boot-2.7.0.jar && \
+    curl -o /app/lib/spring-context-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-context/5.3.21/spring-context-5.3.21.jar && \
+    curl -o /app/lib/jackson-databind-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.13.3/jackson-databind-2.13.3.jar && \
+    curl -o /app/lib/jackson-core-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.13.3/jackson-core-2.13.3.jar
+
+# Create logs directory
+RUN mkdir -p /app/logs
+
+# Compile the Java application
+RUN javac -cp "/app/lib/*" RealMaxvisionSdkServer.java
+
+# Create startup script
+RUN echo '#!/bin/bash' > start.sh && \
+    echo 'echo "=== STARTING REAL MAXVISION SDK SERVER ==="' >> start.sh && \
+    echo 'echo "=== NO MOCK - FULL SDK INTEGRATION ==="' >> start.sh && \
+    echo 'java -cp "/app/lib/*:." RealMaxvisionSdkServer' >> start.sh && \
+    chmod +x start.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# Expose ports
+EXPOSE 6060 8080
+
+# Start the real SDK server
+CMD ["./start.sh"]

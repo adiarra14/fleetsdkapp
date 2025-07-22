@@ -25,13 +25,13 @@ services:
     depends_on:
       - balise-postgres
 
-  # TCP server for balise connections
+  # TCP server for balise connections - REAL MAXVISION SDK
   balise-tcp-server:
     build:
       context: .
-      dockerfile: Dockerfile.tcp-server-v3
+      dockerfile: Dockerfile.real-sdk
       args:
-        - CACHE_BUST=2025-07-22-15-50-SIMPLE-TCP-V3
+        - CACHE_BUST=2025-07-22-20-18-REAL-SDK
     container_name: balise-tcp-server
     ports:
       - "6060:6060"

@@ -1,0 +1,27 @@
+# Maxvision SDK Configuration
+# Port 6060 as required by the user (not 8910 default)
+mvgateway:
+  servers:
+    - port: 6060           # Port for balise connections (user requirement)
+      encrypt: true        # Encrypted communication
+      name: maxvision      # MUST be "maxvision" (SDK requirement)
+
+# Spring Boot configuration
+server:
+  port: 8080              # Health endpoint port
+
+# Database configuration
+spring:
+  datasource:
+    url: jdbc:postgresql://balise-postgres:5432/balisedb
+    username: adminbdb
+    password: To7Z2UCeWTsriPxbADX8
+    driver-class-name: org.postgresql.Driver
+  
+# Logging configuration
+logging:
+  level:
+    com.maxvision: DEBUG
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
