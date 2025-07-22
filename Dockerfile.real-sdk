@@ -47,7 +47,10 @@ RUN mkdir -p /app/lib && \
     curl -o /app/lib/jackson-core-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.13.3/jackson-core-2.13.3.jar && \
     curl -o /app/lib/jackson-annotations-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.13.3/jackson-annotations-2.13.3.jar && \
     curl -o /app/lib/commons-logging-1.2.jar https://repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar && \
-    curl -o /app/lib/snakeyaml-1.30.jar https://repo1.maven.org/maven2/org/yaml/snakeyaml/1.30/snakeyaml-1.30.jar
+    curl -o /app/lib/snakeyaml-1.30.jar https://repo1.maven.org/maven2/org/yaml/snakeyaml/1.30/snakeyaml-1.30.jar && \
+    curl -o /app/lib/slf4j-api-1.7.36.jar https://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar && \
+    curl -o /app/lib/logback-classic-1.2.12.jar https://repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.12/logback-classic-1.2.12.jar && \
+    curl -o /app/lib/logback-core-1.2.12.jar https://repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.12/logback-core-1.2.12.jar
 
 # Create logs directory
 RUN mkdir -p /app/logs
