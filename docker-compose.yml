@@ -31,7 +31,6 @@ services:
     container_name: balise-tcp-server
     ports:
       - "8910:8910"  # SDK STANDARD PORT for TY5201-LOCK messages
-      - "7080:8080"   # HTTP health endpoint
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://balise-postgres:5432/balisedb
       - SPRING_DATASOURCE_USERNAME=adminbdb
