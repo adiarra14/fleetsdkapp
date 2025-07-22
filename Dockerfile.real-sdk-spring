@@ -1,0 +1,54 @@
+# REAL MAXVISION SDK SERVER DOCKERFILE
+# Uses Spring Boot with actual Maxvision SDK integration
+FROM eclipse-temurin:17-jdk-alpine
+
+# Install required packages
+RUN apk add --no-cache curl netcat-openbsd
+
+# Set working directory
+WORKDIR /app
+
+# Copy SDK JAR and dependencies
+COPY lib/maxvision-edge-protocol-gateway-service-sdk.jar /app/lib/
+COPY lib/postgresql-42.7.2.jar /app/lib/
+
+# Download required SDK dependencies
+RUN mkdir -p /app/lib && \
+    wget -O /app/lib/lombok-1.18.24.jar https://repo1.maven.org/maven2/org/projectlombok/lombok/1.18.24/lombok-1.18.24.jar && \
+    wget -O /app/lib/netty-all-4.1.78.Final.jar https://repo1.maven.org/maven2/io/netty/netty-all/4.1.78.Final/netty-all-4.1.78.Final.jar && \
+    wget -O /app/lib/caffeine-3.1.8.jar https://repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/3.1.8/caffeine-3.1.8.jar && \
+    wget -O /app/lib/hutool-all-5.7.3.jar https://repo1.maven.org/maven2/cn/hutool/hutool-all/5.7.3/hutool-all-5.7.3.jar && \
+    wget -O /app/lib/commons-lang3-3.12.0.jar https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar && \
+    wget -O /app/lib/guava-28.1-jre.jar https://repo1.maven.org/maven2/com/google/guava/guava/28.1-jre/guava-28.1-jre.jar && \
+    wget -O /app/lib/spring-boot-starter-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter/2.7.0/spring-boot-starter-2.7.0.jar && \
+    wget -O /app/lib/spring-boot-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot/2.7.0/spring-boot-2.7.0.jar && \
+    wget -O /app/lib/spring-boot-autoconfigure-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-autoconfigure/2.7.0/spring-boot-autoconfigure-2.7.0.jar && \
+    wget -O /app/lib/spring-context-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-context/5.3.21/spring-context-5.3.21.jar && \
+    wget -O /app/lib/spring-core-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-core/5.3.21/spring-core-5.3.21.jar && \
+    wget -O /app/lib/spring-beans-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-beans/5.3.21/spring-beans-5.3.21.jar && \
+    wget -O /app/lib/jackson-databind-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.13.3/jackson-databind-2.13.3.jar && \
+    wget -O /app/lib/jackson-core-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.13.3/jackson-core-2.13.3.jar && \
+    wget -O /app/lib/jackson-annotations-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.13.3/jackson-annotations-2.13.3.jar
+
+# Copy application files
+COPY RealSdkMaxvisionServer.java /app/
+COPY application-real-sdk.yml /app/application.yml
+
+# Compile the Java application with all dependencies
+RUN javac -cp "/app/lib/*" RealSdkMaxvisionServer.java
+
+# Environment variables
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
+ENV DB_URL="jdbc:postgresql://balise-postgres:5432/balisedb"
+ENV DB_USER="adminbdb"
+ENV DB_PASSWORD="To7Z2UCeWTsriPxbADX8"
+
+# Expose ports
+EXPOSE 8080 8910
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8080/actuator/health || netstat -ln | grep :8910 || exit 1
+
+# Start the application
+CMD java $JAVA_OPTS -cp "/app/lib/*:/app" RealSdkMaxvisionServer

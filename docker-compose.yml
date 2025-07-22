@@ -25,24 +25,24 @@ services:
     depends_on:
       - balise-postgres
 
-  # TCP server for balise connections - REAL MAXVISION SDK
+  # TCP server for balise connections - REAL MAXVISION SDK WITH GPS PARSING
   balise-tcp-server:
     build:
       context: .
-      dockerfile: Dockerfile.working-sdk
+      dockerfile: Dockerfile.real-sdk-spring
       args:
-        - CACHE_BUST=2025-07-22-22-11-FIXED-HEALTH
+        - CACHE_BUST=2025-07-22-22-23-REAL-SDK-GPS
     container_name: balise-tcp-server
     ports:
-      - "6060:6060"  # Only port needed for balise data
+      - "8910:8910"  # REAL SDK PORT for TY5201-LOCK messages
+      - "7080:8080"   # Spring Boot health endpoint
     environment:
       - DB_URL=jdbc:postgresql://balise-postgres:5432/balisedb
       - DB_USER=adminbdb
       - DB_PASSWORD=To7Z2UCeWTsriPxbADX8
-      - SERVER_PORT=6060
       - JAVA_OPTS=-Xmx512m -Xms256m
     healthcheck:
-      test: ["CMD-SHELL", "netstat -ln | grep :6060 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || netstat -ln | grep :8910 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

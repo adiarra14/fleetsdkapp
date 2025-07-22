@@ -1,0 +1,38 @@
+# REAL MAXVISION SDK CONFIGURATION
+# This configuration enables the SDK to listen on port 8910 for TY5201-LOCK messages
+
+server:
+  port: 8080  # Spring Boot HTTP port for health checks
+
+# Maxvision SDK Configuration
+mvgateway:
+  servers:
+    - port: 8910           # Port on which the SDK listens for lock connections (STANDARD SDK PORT)
+      encrypt: true        # Whether the communication channel is encrypted
+      name: maxvision      # Application name (do NOT change this - required by SDK)
+
+# Database Configuration
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://balise-postgres:5432/balisedb}
+    username: ${DB_USER:adminbdb}
+    password: ${DB_PASSWORD:To7Z2UCeWTsriPxbADX8}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: none  # Don't auto-create tables, use our schema
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+# Logging Configuration
+logging:
+  level:
+    com.maxvision: DEBUG
+    org.springframework: INFO
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
