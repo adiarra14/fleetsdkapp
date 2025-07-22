@@ -21,14 +21,13 @@ COPY tcp-server-service/src/main/resources/ /app/src/main/resources/
 # Copy the Maxvision SDK TCP server implementation
 COPY MaxvisionSdkTcpServer.java /app/MaxvisionSdkTcpServer.java
 
-# Create directory for SDK interfaces
+# Create directories for SDK interfaces
 RUN mkdir -p /app/com/maxvision/edge/gateway/lock/netty/handler/model
+RUN mkdir -p /app/com/maxvision/edge/gateway/lock/netty
 
-# Create the MessageHandler interface if not in the SDK JAR
-RUN echo 'package com.maxvision.edge.gateway.lock.netty.handler.model;\n\npublic interface MessageHandler {\n    void handleMessage(Object message);\n    void handleException(Throwable throwable);\n}' > /app/com/maxvision/edge/gateway/lock/netty/handler/model/MessageHandler.java
-
-# Create the LockProtocolServer class if not in the SDK JAR
-RUN echo 'package com.maxvision.edge.gateway.lock.netty;\n\nimport com.maxvision.edge.gateway.lock.netty.handler.model.MessageHandler;\n\npublic class LockProtocolServer {\n    private final int port;\n    private final MessageHandler handler;\n    \n    public LockProtocolServer(int port, MessageHandler handler) {\n        this.port = port;\n        this.handler = handler;\n    }\n    \n    public void start() throws Exception {\n        System.out.println("Starting LockProtocolServer on port " + port);\n    }\n}' > /app/com/maxvision/edge/gateway/lock/netty/LockProtocolServer.java
+# Copy the SDK interface files
+COPY MessageHandler.java /app/com/maxvision/edge/gateway/lock/netty/handler/model/MessageHandler.java
+COPY LockProtocolServer.java /app/com/maxvision/edge/gateway/lock/netty/LockProtocolServer.java
 
 # Compile interfaces and classes needed for SDK integration
 RUN javac /app/com/maxvision/edge/gateway/lock/netty/handler/model/MessageHandler.java
