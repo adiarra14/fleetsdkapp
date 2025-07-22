@@ -9,10 +9,13 @@ RUN apk add --no-cache bash curl
 COPY application.yml .
 COPY logback-spring.xml .
 
-# Copy Spring Boot SDK application files
-COPY SdkNettyApplication.java .
-COPY LockReportServiceImpl.java .
-COPY LockSettingServiceImpl.java .
+# Create proper Java package directory structure
+RUN mkdir -p com/maxvision/fleet/sdk
+
+# Copy Spring Boot SDK application files to correct package directories
+COPY SdkNettyApplication.java com/maxvision/fleet/sdk/
+COPY LockReportServiceImpl.java com/maxvision/fleet/sdk/
+COPY LockSettingServiceImpl.java com/maxvision/fleet/sdk/
 
 # Copy the SDK JAR (postgresql will be downloaded)
 COPY lib/maxvision-edge-protocol-gateway-service-sdk.jar ./lib/
@@ -43,8 +46,8 @@ RUN mkdir -p /app/lib && \
 # Create logs directory
 RUN mkdir -p /app/logs
 
-# Compile the Spring Boot SDK application
-RUN javac -cp "/app/lib/*" *.java
+# Compile the Spring Boot SDK application with proper classpath
+RUN javac -cp "/app/lib/*" com/maxvision/fleet/sdk/*.java
 
 # Create startup script to launch Spring Boot SDK application
 RUN echo '#!/bin/bash' > start.sh && \
