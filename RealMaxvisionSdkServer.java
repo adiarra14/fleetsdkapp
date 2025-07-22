@@ -54,10 +54,43 @@ public class LockReportServiceImpl implements LockReportService {
     public void reportLockMsg(String jsonStr) {
         System.out.println("=== REAL SDK MESSAGE RECEIVED ===");
         System.out.println("Raw JSON: " + jsonStr);
-        
-        try {
-            // Parse the JSON message from the SDK
+
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             JsonNode rootNode = objectMapper.readTree(jsonStr);
+            String deviceId = rootNode.path("lockCode").asText();
+            JsonNode dataNode = rootNode.path("data");
+
+            double latitude = dataNode.path("latitude").asDouble();
+            double longitude = dataNode.path("longitude").asDouble();
+            String eventType = dataNode.path("type").asText();
+            String battery = dataNode.path("voltage").asText();
+
+            // Insert event into balise_events
+            String insertSql = "INSERT INTO balise_events (device_id, latitude, longitude, event_type, battery_level, event_time, raw_data) VALUES (?, ?, ?, ?, ?, NOW(), ?)";
+            try (PreparedStatement stmt = conn.prepareStatement(insertSql)) {
+                stmt.setString(1, deviceId);
+                stmt.setDouble(2, latitude);
+                stmt.setDouble(3, longitude);
+                stmt.setString(4, eventType);
+                stmt.setInt(5, Integer.parseInt(battery));
+                stmt.setString(6, jsonStr);
+                stmt.executeUpdate();
+            }
+
+            // Optionally: update balises table last_seen
+            String updateSql = "UPDATE balises SET last_seen = NOW(), updated_at = NOW() WHERE device_id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(updateSql)) {
+                stmt.setString(1, deviceId);
+                stmt.executeUpdate();
+            }
+
+            System.out.println("✅ Event stored for device " + deviceId + " at " + latitude + "," + longitude);
+
+        } catch (Exception e) {
+            System.err.println("Error storing SDK event: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }            JsonNode rootNode = objectMapper.readTree(jsonStr);
             
             // Extract lockCode (the real device ID)
             String lockCode = rootNode.path("lockCode").asText();
