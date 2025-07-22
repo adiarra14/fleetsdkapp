@@ -351,6 +351,10 @@ public class WorkingMaxvisionSdkServer {
         System.out.println("=== STORING RAW MESSAGE ===");
         
         try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+            
+            // AUTO-CREATE balise entry if it doesn't exist
+            ensureBaliseExists(conn, deviceId);
+            
             String eventSql = """
                 INSERT INTO balise_events (device_id, event_time, event_type, raw_data)
                 VALUES (?, NOW(), ?, ?)
@@ -417,5 +421,31 @@ public class WorkingMaxvisionSdkServer {
             }
         }
         return cleaned.toString();
+    }
+    
+    private void ensureBaliseExists(Connection conn, String deviceId) {
+        try {
+            // Check if balise exists
+            String checkSql = "SELECT COUNT(*) FROM balises WHERE device_id = ?";
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                checkStmt.setString(1, deviceId);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) == 0) {
+                        // Balise doesn't exist, create it
+                        System.out.println("🔧 Auto-creating balise entry: " + deviceId);
+                        
+                        String insertSql = "INSERT INTO balises (device_id, created_at, updated_at, last_seen) VALUES (?, NOW(), NOW(), NOW())";
+                        try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                            insertStmt.setString(1, deviceId);
+                            insertStmt.executeUpdate();
+                            System.out.println("✅ Auto-created balise: " + deviceId);
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error ensuring balise exists: " + e.getMessage());
+            // Continue anyway - the foreign key constraint will catch it
+        }
     }
 }
