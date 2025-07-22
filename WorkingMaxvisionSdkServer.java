@@ -13,7 +13,7 @@ public class WorkingMaxvisionSdkServer {
     private static final String DB_URL = "jdbc:postgresql://balise-postgres:5432/balisedb";
     private static final String DB_USER = "adminbdb";
     private static final String DB_PASSWORD = "To7Z2UCeWTsriPxbADX8";
-    private static final int TCP_PORT = 6060;
+    private static final int TCP_PORT = 8910;  // SDK STANDARD PORT
     private static final int HTTP_PORT = 8080;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -348,26 +348,51 @@ public class WorkingMaxvisionSdkServer {
     }
     
     private void storeRawMessage(String deviceId, String rawData, String clientIP) {
-        System.out.println("=== STORING RAW MESSAGE ===");
+        System.out.println("=== STORING RAW MESSAGE WITH GPS EXTRACTION ===");
         
         try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
             
             // AUTO-CREATE balise entry if it doesn't exist
             ensureBaliseExists(conn, deviceId);
             
-            String eventSql = """
-                INSERT INTO balise_events (device_id, event_time, event_type, raw_data)
-                VALUES (?, NOW(), ?, ?)
-            """;
+            // Try to extract GPS coordinates from TY5201-LOCK message
+            GPSData gpsData = extractGPSFromTY5201(rawData);
             
-            try (PreparedStatement stmt = conn.prepareStatement(eventSql)) {
-                stmt.setString(1, deviceId);
-                stmt.setString(2, "RAW_DATA");
-                // Clean binary data for UTF8 storage
-                String cleanData = cleanBinaryData(rawData);
-                stmt.setString(3, "IP: " + clientIP + " | Data: " + cleanData);
-                stmt.executeUpdate();
-                System.out.println("✅ Stored raw message: " + deviceId);
+            String eventSql;
+            if (gpsData != null && gpsData.isValid()) {
+                // Store with GPS coordinates
+                eventSql = """
+                    INSERT INTO balise_events (device_id, event_time, event_type, latitude, longitude, raw_data)
+                    VALUES (?, NOW(), ?, ?, ?, ?)
+                """;
+                
+                try (PreparedStatement stmt = conn.prepareStatement(eventSql)) {
+                    stmt.setString(1, deviceId);
+                    stmt.setString(2, "GPS_DATA");
+                    stmt.setDouble(3, gpsData.latitude);
+                    stmt.setDouble(4, gpsData.longitude);
+                    // Clean binary data for UTF8 storage
+                    String cleanData = cleanBinaryData(rawData);
+                    stmt.setString(5, "IP: " + clientIP + " | Data: " + cleanData);
+                    stmt.executeUpdate();
+                    System.out.println("🛰️ ✅ STORED GPS MESSAGE: " + deviceId + " at " + gpsData.latitude + "," + gpsData.longitude);
+                }
+            } else {
+                // Store without GPS coordinates
+                eventSql = """
+                    INSERT INTO balise_events (device_id, event_time, event_type, raw_data)
+                    VALUES (?, NOW(), ?, ?)
+                """;
+                
+                try (PreparedStatement stmt = conn.prepareStatement(eventSql)) {
+                    stmt.setString(1, deviceId);
+                    stmt.setString(2, "RAW_DATA");
+                    // Clean binary data for UTF8 storage
+                    String cleanData = cleanBinaryData(rawData);
+                    stmt.setString(3, "IP: " + clientIP + " | Data: " + cleanData);
+                    stmt.executeUpdate();
+                    System.out.println("✅ Stored raw message: " + deviceId + " (no GPS found)");
+                }
             }
             
         } catch (Exception e) {
@@ -447,5 +472,172 @@ public class WorkingMaxvisionSdkServer {
             System.err.println("Error ensuring balise exists: " + e.getMessage());
             // Continue anyway - the foreign key constraint will catch it
         }
+    }
+    
+    /**
+     * GPS Data container class
+     */
+    private static class GPSData {
+        public double latitude;
+        public double longitude;
+        public boolean valid;
+        
+        public GPSData(double lat, double lng, boolean valid) {
+            this.latitude = lat;
+            this.longitude = lng;
+            this.valid = valid;
+        }
+        
+        public boolean isValid() {
+            return valid && latitude != 0.0 && longitude != 0.0;
+        }
+    }
+    
+    /**
+     * Extract GPS coordinates from TY5201-LOCK binary message
+     * TY5201-LOCK protocol contains GPS data in specific byte positions
+     */
+    private GPSData extractGPSFromTY5201(String rawData) {
+        try {
+            System.out.println("🛰️ Attempting GPS extraction from TY5201-LOCK message");
+            
+            // Look for GPS patterns in the message
+            // TY5201-LOCK messages often contain coordinate data after specific markers
+            
+            // Method 1: Look for coordinate patterns (decimal degrees)
+            GPSData coordData = extractCoordinatePatterns(rawData);
+            if (coordData != null && coordData.isValid()) {
+                System.out.println("✅ GPS extracted via coordinate patterns: " + coordData.latitude + "," + coordData.longitude);
+                return coordData;
+            }
+            
+            // Method 2: Look for binary GPS data (common in tracking devices)
+            GPSData binaryData = extractBinaryGPS(rawData);
+            if (binaryData != null && binaryData.isValid()) {
+                System.out.println("✅ GPS extracted via binary parsing: " + binaryData.latitude + "," + binaryData.longitude);
+                return binaryData;
+            }
+            
+            // Method 3: Look for hex-encoded coordinates
+            GPSData hexData = extractHexGPS(rawData);
+            if (hexData != null && hexData.isValid()) {
+                System.out.println("✅ GPS extracted via hex parsing: " + hexData.latitude + "," + hexData.longitude);
+                return hexData;
+            }
+            
+            System.out.println("⚠️ No GPS coordinates found in message");
+            return null;
+            
+        } catch (Exception e) {
+            System.err.println("Error extracting GPS: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Extract coordinates from decimal patterns in the message
+     */
+    private GPSData extractCoordinatePatterns(String rawData) {
+        try {
+            // Look for latitude/longitude patterns (e.g., 48.123456, 2.123456)
+            String[] patterns = {
+                "(\\d{1,3}\\.\\d{4,8})[,\\s]+(\\d{1,3}\\.\\d{4,8})", // lat,lng format
+                "lat[=:]([\\d\\.]+).*lng[=:]([\\d\\.]+)", // lat=xx lng=yy format
+                "([\\d\\.]{6,12})[,\\s]+([\\d\\.]{6,12})" // general decimal format
+            };
+            
+            for (String pattern : patterns) {
+                java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern, java.util.regex.Pattern.CASE_INSENSITIVE);
+                java.util.regex.Matcher m = p.matcher(rawData);
+                if (m.find()) {
+                    double lat = Double.parseDouble(m.group(1));
+                    double lng = Double.parseDouble(m.group(2));
+                    
+                    // Validate coordinate ranges
+                    if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                        return new GPSData(lat, lng, true);
+                    }
+                }
+            }
+            
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    /**
+     * Extract GPS from binary data (common in tracking protocols)
+     */
+    private GPSData extractBinaryGPS(String rawData) {
+        try {
+            // Convert string to bytes and look for GPS patterns
+            byte[] bytes = rawData.getBytes();
+            
+            // Look for GPS data patterns in binary format
+            // Many tracking devices encode GPS as 4-byte integers (lat/lng * 1000000)
+            for (int i = 0; i < bytes.length - 8; i++) {
+                if (bytes[i] == 'G' && bytes[i+1] == 'P' && bytes[i+2] == 'S') {
+                    // Found GPS marker, try to extract coordinates
+                    if (i + 16 < bytes.length) {
+                        // Try to read lat/lng as 4-byte integers
+                        int latInt = bytesToInt(bytes, i + 4);
+                        int lngInt = bytesToInt(bytes, i + 8);
+                        
+                        double lat = latInt / 1000000.0;
+                        double lng = lngInt / 1000000.0;
+                        
+                        if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 && lat != 0 && lng != 0) {
+                            return new GPSData(lat, lng, true);
+                        }
+                    }
+                }
+            }
+            
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    /**
+     * Extract GPS from hex-encoded data
+     */
+    private GPSData extractHexGPS(String rawData) {
+        try {
+            // Look for hex patterns that might represent coordinates
+            String[] hexPatterns = rawData.split("[^0-9A-Fa-f]");
+            
+            for (String hex : hexPatterns) {
+                if (hex.length() >= 8) {
+                    try {
+                        // Try to interpret as hex-encoded coordinates
+                        long value = Long.parseLong(hex.substring(0, 8), 16);
+                        double coord = value / 1000000.0;
+                        
+                        if (coord >= -180 && coord <= 180 && coord != 0) {
+                            // This might be a coordinate, but we need both lat and lng
+                            // For now, return null and let other methods try
+                        }
+                    } catch (NumberFormatException e) {
+                        // Not a valid hex number
+                    }
+                }
+            }
+            
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    /**
+     * Convert 4 bytes to integer (little-endian)
+     */
+    private int bytesToInt(byte[] bytes, int offset) {
+        return (bytes[offset] & 0xFF) |
+               ((bytes[offset + 1] & 0xFF) << 8) |
+               ((bytes[offset + 2] & 0xFF) << 16) |
+               ((bytes[offset + 3] & 0xFF) << 24);
     }
 }
