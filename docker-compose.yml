@@ -31,7 +31,7 @@ services:
       context: .
       dockerfile: Dockerfile.tcp-server
       args:
-        - CACHE_BUST=2025-07-21-22-45-MOCK-SDK-V3
+        - CACHE_BUST=2025-07-22-11-10-SDK-MAP-JSON
     container_name: balise-tcp-server
     ports:
       - "6060:6060"
