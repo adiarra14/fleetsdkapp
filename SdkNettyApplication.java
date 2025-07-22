@@ -12,6 +12,8 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.beans.factory.annotation.Value;
 import javax.sql.DataSource;
 
 @SpringBootApplication
@@ -22,9 +24,29 @@ import javax.sql.DataSource;
 }, nameGenerator = SdkNettyApplication.CustomBeanNameGenerator.class)
 public class SdkNettyApplication {
 
-    // Configuration class to ensure JdbcTemplate bean is created
+    // Configuration class to ensure JdbcTemplate and DataSource beans are created
     @Configuration
     public static class DatabaseConfiguration {
+        
+        @Value("${SPRING_DATASOURCE_URL:jdbc:postgresql://balise-postgres:5432/balisedb}")
+        private String datasourceUrl;
+        
+        @Value("${SPRING_DATASOURCE_USERNAME:adminbdb}")
+        private String datasourceUsername;
+        
+        @Value("${SPRING_DATASOURCE_PASSWORD:To7Z2UCeWTsriPxbADX8}")
+        private String datasourcePassword;
+        
+        @Bean
+        public DataSource dataSource() {
+            DriverManagerDataSource dataSource = new DriverManagerDataSource();
+            dataSource.setDriverClassName("org.postgresql.Driver");
+            dataSource.setUrl(datasourceUrl);
+            dataSource.setUsername(datasourceUsername);
+            dataSource.setPassword(datasourcePassword);
+            return dataSource;
+        }
+        
         @Bean
         public JdbcTemplate jdbcTemplate(DataSource dataSource) {
             return new JdbcTemplate(dataSource);
