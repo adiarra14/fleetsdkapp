@@ -10,12 +10,12 @@ mvgateway:
 server:
   port: 8080              # Health endpoint port
 
-# Database configuration
+# Database configuration (uses environment variables with defaults)
 spring:
   datasource:
-    url: jdbc:postgresql://balise-postgres:5432/balisedb
-    username: adminbdb
-    password: To7Z2UCeWTsriPxbADX8
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://balise-postgres:5432/balisedb}
+    username: ${SPRING_DATASOURCE_USERNAME:adminbdb}
+    password: ${SPRING_DATASOURCE_PASSWORD:To7Z2UCeWTsriPxbADX8}
     driver-class-name: org.postgresql.Driver
   
 # Logging configuration
