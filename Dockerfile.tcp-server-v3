@@ -33,46 +33,8 @@ CREATE TABLE IF NOT EXISTS balise_events ( \
     FOREIGN KEY (device_id) REFERENCES balises(device_id) \
 );" > create-tables.sql
 
-# Create start script
-RUN echo '#!/bin/bash \n\
-echo "===== Starting Maxvision Simple TCP Server v3.0 =====" \n\
-\n\
-# Show directory contents for debugging \n\
-echo "==== Directory contents ====="  \n\
-ls -la  \n\
-echo "==== Lib directory contents =====" \n\
-ls -la lib 2>/dev/null || echo "No lib directory" \n\
-\n\
-# Set JAVA_HOME and PATH for Java \n\
-export JAVA_HOME=/opt/java/openjdk \n\
-export PATH=$JAVA_HOME/bin:$PATH \n\
-\n\
-# Compile the server \n\
-echo "Compiling Maxvision Simple TCP Server..." \n\
-javac -cp .:postgresql.jar MaxvisionSimpleTcpServer.java \n\
-\n\
-# Setup tables if they dont exist \n\
-echo "Setting up database tables (if needed)..." \n\
-sleep 5 # Wait for database to be ready \n\
-PGPASSWORD=To7Z2UCeWTsriPxbADX8 psql -h balise-postgres -U adminbdb -d balisedb -f create-tables.sql \n\
-\n\
-# Run the compiled server with JVM parameters \n\
-echo "Starting Maxvision Simple TCP Server..." \n\
-java -cp .:postgresql.jar MaxvisionSimpleTcpServer & \n\
-SERVER_PID=$! \n\
-echo "Maxvision Simple TCP Server started with PID: $SERVER_PID" \n\
-\n\
-# Monitor the application \n\
-echo "Keeping container alive for monitoring" \n\
-while true; do \n\
-    if ! ps -p $SERVER_PID > /dev/null; then \n\
-        echo "Server process died, restarting..." \n\
-        java -cp .:postgresql.jar MaxvisionSimpleTcpServer & \n\
-        SERVER_PID=$! \n\
-    fi \n\
-    sleep 10 \n\
-done \n\
-' > start.sh
+# Copy the start script
+COPY start-tcp-server.sh ./start.sh
 
 # Make the script executable
 RUN chmod +x start.sh
