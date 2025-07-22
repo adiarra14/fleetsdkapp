@@ -42,11 +42,11 @@ services:
       - SERVER_PORT=6060
       - JAVA_OPTS=-Xmx512m -Xms256m
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 6060 || exit 1"]
+      test: ["CMD-SHELL", "nc -z localhost 6060 || curl -f http://localhost:8080/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 40s
     depends_on:
       - balise-postgres
 
