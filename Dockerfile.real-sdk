@@ -41,7 +41,8 @@ RUN mkdir -p /app/lib && \
     curl -o /app/lib/spring-expression-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-expression/5.3.21/spring-expression-5.3.21.jar && \
     curl -o /app/lib/jackson-databind-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.13.3/jackson-databind-2.13.3.jar && \
     curl -o /app/lib/jackson-core-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.13.3/jackson-core-2.13.3.jar && \
-    curl -o /app/lib/jackson-annotations-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.13.3/jackson-annotations-2.13.3.jar
+    curl -o /app/lib/jackson-annotations-2.13.3.jar https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.13.3/jackson-annotations-2.13.3.jar && \
+    curl -o /app/lib/commons-logging-1.2.jar https://repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar
 
 # Create logs directory
 RUN mkdir -p /app/logs
