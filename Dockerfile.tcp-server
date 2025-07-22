@@ -61,7 +61,7 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo '    echo "HEARTBEAT: Maxvision SDK TCP Server v2.0 alive at $(date)"' >> /app/start.sh && \
     echo '    if ! kill -0 $JAVA_PID 2>/dev/null; then' >> /app/start.sh && \
     echo '        echo "ERROR: Java process died, restarting..."' >> /app/start.sh && \
-    echo '        java -cp "/app/lib/*:/app" MaxvisionSdkTcpServer &' >> /app/start.sh && \
+    echo '        java -cp "/app/lib/*:/app" RetryMaxvisionSdkTcpServer &' >> /app/start.sh && \
     echo '        JAVA_PID=$!' >> /app/start.sh && \
     echo '    fi' >> /app/start.sh && \
     echo '    sleep 60' >> /app/start.sh && \
