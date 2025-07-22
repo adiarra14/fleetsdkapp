@@ -30,14 +30,14 @@ services:
     image: adiarra/ynnov-docker:balise-tcp-server-v11
     container_name: balise-tcp-server
     ports:
-      - "8910:8910"  # SDK STANDARD PORT for TY5201-LOCK messages
+      - "6060:6060"  # SDK ACTUAL PORT for TY5201-LOCK messages (as configured in application.yml)
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://balise-postgres:5432/balisedb
       - SPRING_DATASOURCE_USERNAME=adminbdb
       - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
       - JAVA_OPTS=-Xmx512m -Xms256m
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || netstat -ln | grep :8910 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || netstat -ln | grep :6060 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
