@@ -7,9 +7,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import com.maxvision.edge.gateway.sdk.report.LockReportService;
 
 @Service
-public class LockReportServiceImpl {
+public class LockReportServiceImpl implements LockReportService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;

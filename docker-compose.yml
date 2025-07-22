@@ -25,9 +25,9 @@ services:
     depends_on:
       - balise-postgres
 
-  # TCP server for balise connections - REAL SDK NETTY SERVER ONLY (PRE-BUILT IMAGE V11)
+  # TCP server for balise connections - REAL SDK NETTY SERVER ONLY (PRE-BUILT IMAGE V12)
   balise-tcp-server:
-    image: adiarra/ynnov-docker:balise-tcp-server-v11
+    image: adiarra/ynnov-docker:balise-tcp-server-v12
     container_name: balise-tcp-server
     ports:
       - "6060:6060"  # SDK ACTUAL PORT for TY5201-LOCK messages (as configured in application.yml)
