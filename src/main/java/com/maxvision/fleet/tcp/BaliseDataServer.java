@@ -22,9 +22,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * TCP Server for receiving balise data transmissions
  */
-@Slf4j
-@Component
-public class BaliseDataServer {
+// DISABLED: Spring TCP server is not allowed with SDK integration
+// @Slf4j
+// @Component
+// public class BaliseDataServer {
 
     @Value("${balise.tcp.port:6060}")
     private int port;

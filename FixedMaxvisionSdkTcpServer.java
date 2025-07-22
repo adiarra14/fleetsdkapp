@@ -17,7 +17,8 @@ import com.maxvision.edge.gateway.lock.netty.handler.model.*;
 import com.maxvision.edge.gateway.lock.netty.*;
 import com.maxvision.edge.gateway.lock.*;
 
-public class FixedMaxvisionSdkTcpServer {
+// DISABLED: Custom TCP server is not allowed with SDK integration
+// public class FixedMaxvisionSdkTcpServer {
     private static final String DB_URL = "jdbc:postgresql://balise-postgres:5432/balisedb";
     private static final String DB_USER = "adminbdb";
     private static final String DB_PASSWORD = "To7Z2UCeWTsriPxbADX8";

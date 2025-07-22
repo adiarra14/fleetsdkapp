@@ -22,7 +22,8 @@ import java.nio.charset.StandardCharsets;
  * This provides TCP server on port 6060 for balise connections, HTTP health endpoint,
  * database integration for storing balise data, and basic protocol parsing.
  */
-public class MinimalTcpServer {
+// DISABLED: Custom TCP server is not allowed with SDK integration
+// public class MinimalTcpServer {
     
     // Database connection details
     private static final String DB_URL = "jdbc:postgresql://balise-postgres:5432/balisedb";
