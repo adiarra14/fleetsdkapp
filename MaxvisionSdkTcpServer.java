@@ -1,13 +1,23 @@
-// Maxvision SDK TCP Server Implementation for Balise Management
-// Version 2.0 (2025-07-21) - Full SDK integration with database persistence
+// Real Maxvision SDK TCP Server Implementation
+// Version 4.0 (2025-07-22) - Full SDK integration with LockReportService
 import java.io.*;
 import java.net.*;
 import java.util.concurrent.*;
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.regex.*;
 import java.util.*;
 import com.sun.net.httpserver.*;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanNameGenerator;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.stereotype.Service;
+import com.maxvision.edge.gateway.lock.service.LockReportService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 
 // SDK imports
 import com.maxvision.edge.gateway.lock.netty.decoder.*;

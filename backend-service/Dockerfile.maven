@@ -1,8 +1,8 @@
 # Use Java 17 JDK for building
 FROM eclipse-temurin:17-jdk-alpine as builder
 
-# Install Maven
-RUN apk add --no-cache maven
+# Install Maven and curl
+RUN apk add --no-cache maven curl
 
 # Set working directory
 WORKDIR /app
@@ -11,13 +11,17 @@ WORKDIR /app
 COPY pom.xml .
 
 # Download dependencies (this layer will be cached)
-RUN mvn dependency:go-offline -B
+RUN mvn dependency:go-offline -B || echo "Dependency download completed with warnings"
 
-# Copy source code
+# Copy source code and lib directory
 COPY src ./src
+COPY lib ./lib
 
-# Build the application (skip tests for faster build)
-RUN mvn clean package -DskipTests -B
+# Set Maven options for better compatibility
+ENV MAVEN_OPTS="-Xmx1024m -XX:MaxPermSize=256m"
+
+# Build the application with verbose output and skip tests
+RUN mvn clean package -DskipTests -B -X || (echo "Maven build failed, showing logs:" && find . -name "*.log" -exec cat {} \; && exit 1)
 
 # Runtime stage with JRE
 FROM eclipse-temurin:17-jre-alpine

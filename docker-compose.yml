@@ -27,7 +27,7 @@ services:
 
   # TCP server for balise connections - REAL SDK NETTY SERVER ONLY (EXPLICIT BEAN INJECTION FIX)
   balise-tcp-server:
-    image: adiarra/maxvision-sdk:explicit-bean-injection
+    image: adiarra/maxvision-fresh:v1.0
     container_name: balise-tcp-server
     ports:
       - "6060:6060"  # SDK ACTUAL PORT for TY5201-LOCK messages (as configured in application.yml)

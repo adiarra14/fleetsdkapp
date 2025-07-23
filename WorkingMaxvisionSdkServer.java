@@ -116,55 +116,14 @@ public class WorkingMaxvisionSdkServer {
         }
     }
     
-    private void processBaliseMessage(String jsonStr, String clientIP) {
-        System.out.println("=== PROCESSING SDK MESSAGE ===");
-        System.out.println("Raw JSON: " + jsonStr);
+    private void processBaliseMessage(String rawData, String clientIP) {
+        System.out.println("=== PROCESSING TY5201-LOCK MESSAGE ===");
+        System.out.println("Raw Data: " + rawData);
         
-        try {
-            // Try to parse as JSON (SDK format)
-            JsonNode rootNode = objectMapper.readTree(jsonStr);
-            
-            // Extract lockCode (the real device ID from SDK)
-            String lockCode = rootNode.path("lockCode").asText();
-            JsonNode dataNode = rootNode.path("data");
-            
-            if (lockCode.isEmpty()) {
-                // Fallback: try to extract device ID from other fields
-                lockCode = extractDeviceIdFromJson(rootNode);
-            }
-            
-            if (lockCode.isEmpty()) {
-                lockCode = "DEVICE-" + clientIP.replace(".", "-");
-                System.out.println("Using fallback device ID: " + lockCode);
-            }
-            
-            System.out.println("Device ID (lockCode): " + lockCode);
-            System.out.println("Data: " + dataNode.toString());
-            
-            // Determine message type and process accordingly
-            if (dataNode.has("gpsUploadInterval")) {
-                // Login Message
-                processLoginMessage(lockCode, dataNode);
-            } else if (dataNode.has("networkValue") && dataNode.has("voltage")) {
-                // Keep-Alive Message
-                processKeepAliveMessage(lockCode, dataNode);
-            } else if (dataNode.has("type") && dataNode.has("gps")) {
-                // GPS Report Message
-                processGpsReportMessage(lockCode, dataNode);
-            } else if (dataNode.has("universalNfcList")) {
-                // NFC Info Report
-                processNfcInfoMessage(lockCode, dataNode);
-            } else {
-                System.out.println("Unknown message type, storing as generic event");
-                storeGenericEvent(lockCode, jsonStr);
-            }
-            
-        } catch (Exception e) {
-            System.err.println("Error processing SDK message: " + e.getMessage());
-            // Store as raw data if JSON parsing fails
-            String deviceId = "RAW-" + clientIP.replace(".", "-");
-            storeRawMessage(deviceId, jsonStr, clientIP);
-        }
+        // Skip JSON parsing - go directly to GPS extraction and storage
+        String deviceId = "RAW-" + clientIP.replace(".", "-");
+        System.out.println("=== STORING RAW MESSAGE WITH GPS EXTRACTION ===");
+        storeRawMessage(deviceId, rawData, clientIP);
     }
     
     private String extractDeviceIdFromJson(JsonNode rootNode) {

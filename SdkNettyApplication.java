@@ -59,6 +59,9 @@ public class SdkNettyApplication {
             LockReportServiceImpl service = new LockReportServiceImpl();
             // Manually inject JdbcTemplate since we're creating the bean manually
             service.setJdbcTemplate(jdbcTemplate);
+            System.out.println("=== EXPLICIT LOCKREPORTSERVICE BEAN REGISTERED ===");
+            System.out.println("LockReportService: " + service.getClass().getName());
+            System.out.println("JdbcTemplate: " + (jdbcTemplate != null ? "AVAILABLE" : "NULL"));
             return service;
         }
     }
