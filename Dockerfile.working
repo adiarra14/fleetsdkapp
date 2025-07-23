@@ -1,0 +1,184 @@
+FROM eclipse-temurin:17-jdk-alpine
+
+WORKDIR /app
+
+# Install necessary utilities
+RUN apk add --no-cache bash curl netcat-openbsd
+
+# Copy SDK configuration files
+COPY application-real-sdk.yml application.yml
+COPY logback-spring.xml .
+
+# Copy the SDK JAR and download PostgreSQL driver
+COPY lib/maxvision-edge-protocol-gateway-service-sdk.jar ./lib/
+RUN curl -o /app/lib/postgresql-42.7.4.jar https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.4/postgresql-42.7.4.jar
+
+# Create the working diagnostic service directly in the container
+RUN mkdir -p com/maxvision/fleet/sdk
+
+# Create SdkNettyApplication.java
+RUN cat > com/maxvision/fleet/sdk/SdkNettyApplication.java << 'EOF'
+package com.maxvision.fleet.sdk;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import javax.sql.DataSource;
+
+@SpringBootApplication
+@ComponentScan(basePackages = {"com.maxvision.fleet.sdk", "com.maxvision.edge.gateway"})
+public class SdkNettyApplication {
+    
+    public static void main(String[] args) {
+        System.out.println("=== STARTING REAL MAXVISION SDK NETTY SERVER ===");
+        System.out.println("=== FULL SDK INTEGRATION - NO MOCK ===");
+        SpringApplication.run(SdkNettyApplication.class, args);
+    }
+    
+    @Bean
+    public DataSource dataSource() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName("org.postgresql.Driver");
+        dataSource.setUrl("jdbc:postgresql://balise-postgres:5432/balisedb");
+        dataSource.setUsername("adminbdb");
+        dataSource.setPassword("To7Z2UCeWTsriPxbADX8");
+        return dataSource;
+    }
+    
+    @Bean
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+}
+EOF
+
+# Create WorkingDiagnosticService.java
+RUN cat > com/maxvision/fleet/sdk/WorkingDiagnosticService.java << 'EOF'
+package com.maxvision.fleet.sdk;
+
+import com.maxvision.edge.gateway.sdk.report.LockReportService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
+
+@Service
+public class WorkingDiagnosticService implements LockReportService {
+    
+    @Autowired(required = false)
+    private JdbcTemplate jdbcTemplate;
+    
+    private static int messageCount = 0;
+    
+    @Override
+    public void reportLockMsg(String message) {
+        messageCount++;
+        
+        System.out.println("=== WORKING DIAGNOSTIC: LOCKREPORTSERVICE CALLED ===");
+        System.out.println("Call #" + messageCount);
+        System.out.println("Timestamp: " + LocalDateTime.now());
+        System.out.println("Message length: " + (message != null ? message.length() : "NULL"));
+        System.out.println("JdbcTemplate available: " + (jdbcTemplate != null));
+        
+        if (message != null && message.length() > 0) {
+            System.out.println("Message preview: " + message.substring(0, Math.min(100, message.length())));
+        }
+        
+        if (jdbcTemplate != null) {
+            try {
+                String insertSql = "INSERT INTO balise_events (balise_id, event_type, event_time, message_raw) VALUES (?, ?, ?, ?)";
+                int rowsAffected = jdbcTemplate.update(insertSql, 1, "WORKING_SDK_MESSAGE", java.sql.Timestamp.valueOf(LocalDateTime.now()), message);
+                
+                System.out.println("SUCCESS: Database insert completed, rows affected: " + rowsAffected);
+                
+                String countSql = "SELECT COUNT(*) FROM balise_events WHERE event_type = 'WORKING_SDK_MESSAGE'";
+                Integer count = jdbcTemplate.queryForObject(countSql, Integer.class);
+                System.out.println("Total working SDK messages in database: " + count);
+                
+            } catch (Exception e) {
+                System.err.println("ERROR: Database operation failed");
+                e.printStackTrace();
+            }
+        } else {
+            System.err.println("WARNING: JdbcTemplate is null, cannot store message");
+        }
+        
+        System.out.println("=== WORKING DIAGNOSTIC: COMPLETED ===");
+        System.out.println("SUCCESS: This proves the SDK is calling our service!");
+    }
+}
+EOF
+
+# Create LockSettingServiceImpl.java
+RUN cat > com/maxvision/fleet/sdk/LockSettingServiceImpl.java << 'EOF'
+package com.maxvision.fleet.sdk;
+
+import com.maxvision.edge.gateway.sdk.setting.LockSettingService;
+import org.springframework.stereotype.Service;
+
+@Service
+public class LockSettingServiceImpl implements LockSettingService {
+    
+    @Override
+    public void authSealOrUnsealCard(String message) {
+        System.out.println("LockSettingService: authSealOrUnsealCard called with: " + message);
+    }
+    
+    @Override
+    public void gpsIntervalSetting(String message) {
+        System.out.println("LockSettingService: gpsIntervalSetting called with: " + message);
+    }
+    
+    @Override
+    public void smsVipSetting(String message) {
+        System.out.println("LockSettingService: smsVipSetting called with: " + message);
+    }
+    
+    @Override
+    public void multiIpSetting(String message) {
+        System.out.println("LockSettingService: multiIpSetting called with: " + message);
+    }
+    
+    @Override
+    public void operateCommand(String message) {
+        System.out.println("LockSettingService: operateCommand called with: " + message);
+    }
+    
+    @Override
+    public void changeDeviceMode(String message) {
+        System.out.println("LockSettingService: changeDeviceMode called with: " + message);
+    }
+}
+EOF
+
+# Download Spring Boot dependencies
+RUN curl -o /app/lib/spring-boot-starter-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-starter/2.7.0/spring-boot-starter-2.7.0.jar && \
+    curl -o /app/lib/spring-boot-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot/2.7.0/spring-boot-2.7.0.jar && \
+    curl -o /app/lib/spring-boot-autoconfigure-2.7.0.jar https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-autoconfigure/2.7.0/spring-boot-autoconfigure-2.7.0.jar && \
+    curl -o /app/lib/spring-context-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-context/5.3.21/spring-context-5.3.21.jar && \
+    curl -o /app/lib/spring-core-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-core/5.3.21/spring-core-5.3.21.jar && \
+    curl -o /app/lib/spring-beans-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-beans/5.3.21/spring-beans-5.3.21.jar && \
+    curl -o /app/lib/spring-jdbc-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-jdbc/5.3.21/spring-jdbc-5.3.21.jar && \
+    curl -o /app/lib/spring-tx-5.3.21.jar https://repo1.maven.org/maven2/org/springframework/spring-tx/5.3.21/spring-tx-5.3.21.jar
+
+# Compile the application
+RUN javac -cp "/app/lib/*" com/maxvision/fleet/sdk/*.java
+
+# Create startup script
+RUN echo '#!/bin/bash' > start.sh && \
+    echo 'echo "=== STARTING WORKING DIAGNOSTIC SDK SERVER ==="' >> start.sh && \
+    echo 'java -cp "/app/lib/*:." com.maxvision.fleet.sdk.SdkNettyApplication' >> start.sh && \
+    chmod +x start.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD nc -z localhost 6060 || exit 1
+
+# Expose ports
+EXPOSE 6060 8080
+
+# Start the server
+CMD ["./start.sh"]

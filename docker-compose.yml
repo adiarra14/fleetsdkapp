@@ -25,7 +25,7 @@ services:
 
   # TCP server for balise connections - REAL SDK NETTY SERVER ONLY (EXPLICIT BEAN INJECTION FIX)
   balise-tcp-server:
-    image: adiarra/maxvision-aggressive:20250723-204447
+    image: adiarra/ynnov-docker:balise-tcp-server-v11
     container_name: balise-tcp-server
     pull_policy: always  # FORCE PULL LATEST IMAGE
     ports:
