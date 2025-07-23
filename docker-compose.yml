@@ -27,14 +27,19 @@ services:
 
   # TCP server for balise connections - REAL SDK NETTY SERVER ONLY (EXPLICIT BEAN INJECTION FIX)
   balise-tcp-server:
-    image: adiarra/maxvision-enhanced:v1.0
+    image: adiarra/maxvision-force:20250723-171548
     container_name: balise-tcp-server
+    pull_policy: always  # FORCE PULL LATEST IMAGE
     ports:
       - "6060:6060"  # SDK ACTUAL PORT for TY5201-LOCK messages (as configured in application.yml)
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://balise-postgres:5432/balisedb
-      - SPRING_DATASOURCE_USERNAME=adminbdb
-      - SPRING_DATASOURCE_PASSWORD=To7Z2UCeWTsriPxbADX8
+      - SPRING_PROFILES_ACTIVE=production
+      - DB_HOST=balise-postgres
+      - DB_PORT=5432
+      - DB_NAME=balise_management
+      - DB_USER=balise_user
+      - DB_PASSWORD=balise_password123
+      - CACHE_BUST=enhanced-v1.0-$(date +%s)  # CACHE BUSTING
       - JAVA_OPTS=-Xmx512m -Xms256m
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/health || netstat -ln | grep :6060 || exit 1"]
