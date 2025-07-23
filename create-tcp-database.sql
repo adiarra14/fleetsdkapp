@@ -1,8 +1,8 @@
 -- Database creation script for TCP server communication
 -- This creates the exact tables needed for the Maxvision SDK TCP server
 
--- Enable PostGIS extension for geographic data
-CREATE EXTENSION IF NOT EXISTS postgis;
+-- Note: PostGIS extension not available in container, using standard PostgreSQL types
+-- CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- Main balises table - stores device information
 CREATE TABLE IF NOT EXISTS balises (
@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS balises (
     last_seen TIMESTAMP WITH TIME ZONE,
     battery_level DECIMAL(5,2),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    location GEOGRAPHY(POINT, 4326),
+    latitude DECIMAL(10, 8),
+    longitude DECIMAL(11, 8),
     container_id INTEGER
 );
 
@@ -24,7 +25,8 @@ CREATE TABLE IF NOT EXISTS balise_events (
     balise_id INTEGER,
     event_type VARCHAR(50) NOT NULL,
     event_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    location GEOGRAPHY(POINT, 4326),
+    latitude DECIMAL(10, 8),
+    longitude DECIMAL(11, 8),
     battery_level DECIMAL(5,2),
     speed DECIMAL(10,2),
     heading DECIMAL(10,2),
@@ -39,7 +41,8 @@ CREATE TABLE IF NOT EXISTS containers (
     type VARCHAR(50),
     status VARCHAR(50),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    location GEOGRAPHY(POINT, 4326)
+    latitude DECIMAL(10, 8),
+    longitude DECIMAL(11, 8)
 );
 
 -- Assets table for linking containers and balises
@@ -48,17 +51,19 @@ CREATE TABLE IF NOT EXISTS assets (
     name VARCHAR(255) NOT NULL,
     type VARCHAR(50),
     status VARCHAR(50),
-    container_id INTEGER REFERENCES containers(id),
-    balise_id INTEGER REFERENCES balises(id),
+    container_id INTEGER,
+    balise_id INTEGER,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Performance indexes for TCP server queries
 CREATE INDEX IF NOT EXISTS idx_balises_imei ON balises(imei);
-CREATE INDEX IF NOT EXISTS idx_balises_location ON balises USING GIST(location);
+CREATE INDEX IF NOT EXISTS idx_balises_latitude ON balises(latitude);
+CREATE INDEX IF NOT EXISTS idx_balises_longitude ON balises(longitude);
 CREATE INDEX IF NOT EXISTS idx_balise_events_balise_id ON balise_events(balise_id);
 CREATE INDEX IF NOT EXISTS idx_balise_events_event_time ON balise_events(event_time);
-CREATE INDEX IF NOT EXISTS idx_balise_events_location ON balise_events USING GIST(location);
+CREATE INDEX IF NOT EXISTS idx_balise_events_latitude ON balise_events(latitude);
+CREATE INDEX IF NOT EXISTS idx_balise_events_longitude ON balise_events(longitude);
 
 -- Set proper ownership for TCP server database user
 ALTER TABLE balises OWNER TO adminbdb;
