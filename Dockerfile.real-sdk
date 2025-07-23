@@ -14,7 +14,7 @@ RUN mkdir -p com/maxvision/fleet/sdk
 
 # Copy Spring Boot SDK application files to correct package directories
 COPY SdkNettyApplication.java com/maxvision/fleet/sdk/
-COPY LockReportServiceImpl.java com/maxvision/fleet/sdk/
+COPY SimpleDiagnosticService.java com/maxvision/fleet/sdk/
 COPY LockSettingServiceImpl.java com/maxvision/fleet/sdk/
 
 # Copy the SDK JAR (postgresql will be downloaded)
