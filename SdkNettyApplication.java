@@ -68,6 +68,15 @@ public class SdkNettyApplication {
             System.out.println("Database storage when available: TRUE");
             System.out.println("JdbcTemplate: " + (jdbcTemplate != null ? "AVAILABLE" : "NULL"));
             
+            // CRITICAL: Register service globally for SDK access
+            try {
+                // Store service in static context for SDK access
+                SdkServiceRegistry.registerLockReportService(service);
+                System.out.println("SUCCESS: LockReportService registered in SDK registry");
+            } catch (Exception e) {
+                System.err.println("WARNING: Could not register service in SDK registry: " + e.getMessage());
+            }
+            
             return service;
         }
     }
@@ -75,8 +84,22 @@ public class SdkNettyApplication {
     public static void main(String[] args) {
         System.out.println("=== STARTING REAL MAXVISION SDK NETTY SERVER ===");
         System.out.println("=== FULL SDK INTEGRATION - NO MOCK ===");
-        SpringApplication.run(SdkNettyApplication.class, args);
+        System.out.println("=== ENHANCED INJECTION SYSTEM ACTIVE ===");
+        
+        SpringApplication app = new SpringApplication(SdkNettyApplication.class);
+        app.run(args);
+        
         System.out.println("=== SDK NETTY SERVER STARTED SUCCESSFULLY ===");
+        System.out.println("=== INJECTION HANDLER INITIALIZED ===");
+        
+        // Force injection after startup
+        try {
+            Thread.sleep(3000); // Wait for full initialization
+            SdkInjectionHandler.injectLockReportService();
+            System.out.println("=== POST-STARTUP INJECTION COMPLETED ===");
+        } catch (Exception e) {
+            System.err.println("WARNING: Post-startup injection failed: " + e.getMessage());
+        }
     }
 
     // Custom bean name generator to avoid conflicts with SDK beans
