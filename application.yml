@@ -13,9 +13,9 @@ server:
 # Database configuration (uses environment variables with defaults)
 spring:
   datasource:
-    url: jdbc:postgresql://balise-postgres:5432/balisedb
-    username: adminbdb
-    password: To7Z2UCeWTsriPxbADX8
+    url: ${DB_URL:jdbc:postgresql://balise-postgres:5432/balisedb}
+    username: ${DB_USER:adminbdb}
+    password: ${DB_PASSWORD:To7Z2UCeWTsriPxbADX8}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
