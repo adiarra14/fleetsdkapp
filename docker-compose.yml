@@ -33,6 +33,9 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - JAVA_OPTS=-Xmx512m -Xms256m
+      - DB_URL=jdbc:postgresql://balise-postgres:5432/balisedb
+      - DB_USER=adminbdb
+      - DB_PASSWORD=To7Z2UCeWTsriPxbADX8
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 6060 || exit 1"]
       interval: 30s
