@@ -16,6 +16,11 @@ public class LockReportServiceImpl implements LockReportService {
     private JdbcTemplate jdbcTemplate;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
+    
+    // Setter for manual dependency injection
+    public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     public void reportLockMsg(String jsonStr) {
         System.out.println("=== SDK PARSED MESSAGE RECEIVED ===");

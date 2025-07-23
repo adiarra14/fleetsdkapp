@@ -15,6 +15,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.beans.factory.annotation.Value;
 import javax.sql.DataSource;
+import com.maxvision.edge.gateway.sdk.report.LockReportService;
+import com.maxvision.fleet.sdk.LockReportServiceImpl;
 
 @SpringBootApplication
 @EnableAutoConfiguration
@@ -50,6 +52,14 @@ public class SdkNettyApplication {
         @Bean
         public JdbcTemplate jdbcTemplate(DataSource dataSource) {
             return new JdbcTemplate(dataSource);
+        }
+        
+        @Bean
+        public LockReportService lockReportService(JdbcTemplate jdbcTemplate) {
+            LockReportServiceImpl service = new LockReportServiceImpl();
+            // Manually inject JdbcTemplate since we're creating the bean manually
+            service.setJdbcTemplate(jdbcTemplate);
+            return service;
         }
     }
 
