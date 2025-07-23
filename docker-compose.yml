@@ -27,7 +27,7 @@ services:
 
   # TCP server for balise connections - REAL SDK NETTY SERVER ONLY (EXPLICIT BEAN INJECTION FIX)
   balise-tcp-server:
-    image: adiarra/maxvision-force:20250723-171548
+    image: adiarra/maxvision-dbfix:20250723-172840
     container_name: balise-tcp-server
     pull_policy: always  # FORCE PULL LATEST IMAGE
     ports:

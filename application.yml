@@ -13,10 +13,17 @@ server:
 # Database configuration (uses environment variables with defaults)
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://balise-postgres:5432/balisedb}
-    username: ${SPRING_DATASOURCE_USERNAME:adminbdb}
-    password: ${SPRING_DATASOURCE_PASSWORD:To7Z2UCeWTsriPxbADX8}
+    url: jdbc:postgresql://${DB_HOST:balise-postgres}:${DB_PORT:5432}/${DB_NAME:balise_management}
+    username: ${DB_USER:balise_user}
+    password: ${DB_PASSWORD:balise_password123}
     driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   
 # Logging configuration
 logging:
