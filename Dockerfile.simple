@@ -1,7 +1,0 @@
-# Test with a simple Maven image
-FROM maven:3.9-eclipse-temurin-17
-
-WORKDIR /app
-
-# Just list files initially to troubleshoot
-CMD ["ls", "-la"]

@@ -4,8 +4,6 @@ services:
     build:
       context: ./backend-service
       dockerfile: Dockerfile.jar
-      args:
-        - CACHE_BUST=2025-07-21-21-15-JAR-SIMPLE
     container_name: balise-sdk-service
     ports:
       - "6062:8080"
@@ -34,19 +32,13 @@ services:
       - "6060:6060"  # SDK ACTUAL PORT for TY5201-LOCK messages (as configured in application.yml)
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - DB_HOST=balise-postgres
-      - DB_PORT=5432
-      - DB_NAME=balise_management
-      - DB_USER=balise_user
-      - DB_PASSWORD=balise_password123
-      - CACHE_BUST=enhanced-v1.0-$(date +%s)  # CACHE BUSTING
       - JAVA_OPTS=-Xmx512m -Xms256m
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || netstat -ln | grep :6060 || exit 1"]
+      test: ["CMD-SHELL", "nc -z localhost 6060 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     depends_on:
       - balise-postgres
 
@@ -66,8 +58,6 @@ services:
     build:
       context: ./cma-cgm
       dockerfile: docker/Dockerfile.standalone
-      args:
-        - CACHE_BUST=2025-07-21-11-00-STANDALONE
     container_name: cmacgm-integration
     ports:
       - "6064:8081"

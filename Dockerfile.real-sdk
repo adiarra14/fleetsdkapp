@@ -65,9 +65,9 @@ RUN echo '#!/bin/bash' > start.sh && \
     echo 'java -cp "/app/lib/*:." com.maxvision.fleet.sdk.SdkNettyApplication' >> start.sh && \
     chmod +x start.sh
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
+# Health check - matches docker-compose.yml configuration
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD nc -z localhost 6060 || exit 1
 
 # Expose ports
 EXPOSE 6060 8080
