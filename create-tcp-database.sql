@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS balises (
 -- Balise events table - stores all TCP server data transmissions
 CREATE TABLE IF NOT EXISTS balise_events (
     id SERIAL PRIMARY KEY,
-    balise_id INTEGER REFERENCES balises(id) ON DELETE CASCADE,
+    balise_id INTEGER,
     event_type VARCHAR(50) NOT NULL,
     event_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     location GEOGRAPHY(POINT, 4326),
