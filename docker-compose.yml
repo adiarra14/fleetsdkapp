@@ -24,10 +24,12 @@ services:
       - balise-postgres
 
   balise-tcp-server:
-    image: adiarra/maxvision-service-fix:v1.0
+    build:
+      context: .
+      dockerfile: Dockerfile.service-fix
+    image: maxvision-service-fix:local
     restart: always
     container_name: balise-tcp-server
-    pull_policy: always
     ports:
       - "6060:6060"
     environment:
