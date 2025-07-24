@@ -110,7 +110,7 @@ services:
         
         # Create tables
         echo "Creating tables..."
-        psql -U adminbdb -d balisedb << EOSQL
+        psql -U adminbdb -d balisedb << "EOSQL"
         -- Create balises table
         CREATE TABLE IF NOT EXISTS balises (
             id SERIAL PRIMARY KEY,
@@ -183,7 +183,7 @@ services:
         -- Grant necessary permissions
         GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO adminbdb;
         GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO adminbdb;
-        EOSQL
+EOSQL
         
         echo "Database initialization completed successfully!"
         
