@@ -24,12 +24,29 @@ public class WorkingServicePatcher {
     public void onApplicationReady() {
         System.out.println("=== WORKING SERVICE PATCHER STARTED ===");
         
-        // Get our service
+        // Get our service - handle multiple beans
         try {
-            lockReportService = applicationContext.getBean(LockReportService.class);
-            System.out.println("✅ Found LockReportService: " + lockReportService.getClass().getName());
+            // Try to get the correct implementation by name
+            try {
+                lockReportService = (LockReportService) applicationContext.getBean("com_maxvision_edge_gateway_sdk_report_lockreportserviceimpl");
+                System.out.println("✅ Found correct LockReportService: " + lockReportService.getClass().getName());
+            } catch (Exception e1) {
+                try {
+                    lockReportService = (LockReportService) applicationContext.getBean("lockReportService");
+                    System.out.println("✅ Found fallback LockReportService: " + lockReportService.getClass().getName());
+                } catch (Exception e2) {
+                    // Get any available implementation
+                    String[] beanNames = applicationContext.getBeanNamesForType(LockReportService.class);
+                    if (beanNames.length > 0) {
+                        lockReportService = (LockReportService) applicationContext.getBean(beanNames[0]);
+                        System.out.println("✅ Found any LockReportService: " + lockReportService.getClass().getName());
+                    } else {
+                        throw new RuntimeException("No LockReportService beans found");
+                    }
+                }
+            }
         } catch (Exception e) {
-            System.err.println("❌ Could not find LockReportService: " + e.getMessage());
+            System.err.println("❌ Could not find any LockReportService: " + e.getMessage());
             return;
         }
 
