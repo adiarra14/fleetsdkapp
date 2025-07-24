@@ -25,6 +25,7 @@ services:
 
   balise-tcp-server:
     image: adiarra/maxvision-enhanced:v1.0
+    restart: always
     container_name: balise-tcp-server
     pull_policy: always
     ports:
@@ -37,6 +38,8 @@ services:
       - DB_PASSWORD=To7Z2UCeWTsriPxbADX8
       - LOGGING_LEVEL_ROOT=INFO
       - LOGGING_LEVEL_COM_MAXVISION=DEBUG
+      - ENABLE_SERVICE_INJECTION=true
+      - AUTO_STORE_BALISE_DATA=true
     healthcheck:
       test: ["CMD-SHELL", "nc -z localhost 6060 || exit 1"]
       interval: 30s
