@@ -1,9 +1,11 @@
+version: "3.8"
+
 services:
-  # Backend service (Spring Boot)
   balise-sdk-service:
     build:
       context: ./backend-service
       dockerfile: Dockerfile.jar
+    image: adiarra/balise-sdk-service:latest
     container_name: balise-sdk-service
     ports:
       - "6062:8080"
@@ -23,13 +25,12 @@ services:
     depends_on:
       - balise-postgres
 
-  # TCP server for balise connections - REAL SDK NETTY SERVER ONLY (EXPLICIT BEAN INJECTION FIX)
   balise-tcp-server:
     image: adiarra/maxvision-enhanced:v1.0
     container_name: balise-tcp-server
-    pull_policy: always  # FORCE PULL LATEST IMAGE
+    pull_policy: always
     ports:
-      - "6060:6060"  # SDK ACTUAL PORT for TY5201-LOCK messages (as configured in application.yml)
+      - "6060:6060"
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - JAVA_OPTS=-Xmx512m -Xms256m
@@ -45,22 +46,22 @@ services:
     depends_on:
       - balise-postgres
 
-  # Web UI (nginx)
   balise-web-ui:
     build:
       context: ./web-ui
       dockerfile: Dockerfile
+    image: adiarra/balise-web-ui:latest
     container_name: balise-web-ui
     ports:
       - "6061:80"
     depends_on:
       - balise-sdk-service
 
-  # CMA-CGM Integration Service
   cmacgm-integration:
     build:
       context: ./cma-cgm
       dockerfile: docker/Dockerfile.standalone
+    image: adiarra/cmacgm-integration:latest
     container_name: cmacgm-integration
     ports:
       - "6064:8081"
@@ -85,7 +86,6 @@ services:
       - balise-postgres
       - balise-sdk-service
 
-  # PostgreSQL database with PostGIS extension
   balise-postgres:
     image: postgis/postgis:14-3.3
     container_name: balise-postgres
