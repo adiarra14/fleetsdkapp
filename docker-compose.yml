@@ -97,6 +97,9 @@ services:
       - POSTGRES_DB=balisedb
     volumes:
       - ./database/init:/docker-entrypoint-initdb.d
+      - ./create-tcp-database.sql:/docker-entrypoint-initdb.d/01-create-tcp-database.sql
+      - ./database-setup/pg_hba.conf.md5:/tmp/pg_hba.conf.md5
+      - ./database-setup/init-postgres.sh:/docker-entrypoint-initdb.d/02-init-postgres.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U adminbdb -d balisedb"]
       interval: 10s
