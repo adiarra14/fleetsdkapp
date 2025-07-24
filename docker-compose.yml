@@ -93,10 +93,10 @@ services:
       - POSTGRES_USER=adminbdb
       - POSTGRES_PASSWORD=To7Z2UCeWTsriPxbADX8
       - POSTGRES_DB=balisedb
+      # Directly set Postgres to use md5 authentication
+      - POSTGRES_HOST_AUTH_METHOD=md5
     volumes:
       - ./database-setup/sql:/docker-entrypoint-initdb.d
-      - ./database-setup/pg_hba.conf.md5:/tmp/pg_hba.conf.md5
-    command: ["/bin/bash", "-c", "cp /tmp/pg_hba.conf.md5 /var/lib/postgresql/data/pg_hba.conf && chmod 600 /var/lib/postgresql/data/pg_hba.conf && /usr/local/bin/docker-entrypoint.sh postgres"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U adminbdb -d balisedb"]
       interval: 10s

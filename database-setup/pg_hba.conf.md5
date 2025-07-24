@@ -1,14 +1,19 @@
 # PostgreSQL Client Authentication Configuration File
-# This file is used to configure MD5 authentication instead of the default SCRAM-SHA-256
-# This allows the TCP server's JDBC driver to connect properly
-
+# ===================================================
+#
 # TYPE  DATABASE        USER            ADDRESS                 METHOD
 
+# Database administrative login by Unix domain socket
+local   all             postgres                                peer
+
 # "local" is for Unix domain socket connections only
-local   all             all                                     trust
+local   all             all                                     md5
+
 # IPv4 local connections:
 host    all             all             127.0.0.1/32            md5
+
 # IPv6 local connections:
 host    all             all             ::1/128                 md5
+
 # Allow all connections with MD5 authentication
 host    all             all             all                     md5
