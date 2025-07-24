@@ -84,6 +84,14 @@ public class SdkNettyApplication {
     public static void main(String[] args) {
         System.out.println("=== STARTING REAL MAXVISION SDK NETTY SERVER ===");
         System.out.println("=== FULL SDK INTEGRATION - NO MOCK ===");
+        
+        // Install JSON capture interceptor
+        try {
+            JsonCaptureInterceptor.installGlobalHandler();
+            System.out.println("=== JSON CAPTURE INTERCEPTOR ACTIVE ===");
+        } catch (Exception e) {
+            System.err.println("Failed to install JSON interceptor: " + e.getMessage());
+        }
         System.out.println("=== ENHANCED INJECTION SYSTEM ACTIVE ===");
         
         SpringApplication app = new SpringApplication(SdkNettyApplication.class);
