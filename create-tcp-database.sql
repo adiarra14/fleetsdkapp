@@ -7,10 +7,15 @@
 -- Main balises table - stores device information
 CREATE TABLE IF NOT EXISTS balises (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    imei VARCHAR(255) UNIQUE NOT NULL,
+    device_id VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255),
+    serial_number VARCHAR(255),
+    imei VARCHAR(255),
+    model VARCHAR(50),
     type VARCHAR(50),
+    firmware_version VARCHAR(50),
     status VARCHAR(50),
+    last_ip VARCHAR(45),
     last_seen TIMESTAMP WITH TIME ZONE,
     battery_level DECIMAL(5,2),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
