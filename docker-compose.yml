@@ -31,7 +31,7 @@ services:
       - "6060:6060"
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - JAVA_OPTS=-Xmx512m -Xms256m -Dlogging.level.com.maxvision=DEBUG
+      - JAVA_OPTS=-Xmx512m -Xms256m -Dlogging.level.com.maxvision=TRACE -Dlogging.level.io.netty=DEBUG -Dlogging.level.root=INFO
       - DB_URL=jdbc:postgresql://balise-postgres:5432/balisedb
       - DB_USER=adminbdb
       - DB_PASSWORD=To7Z2UCeWTsriPxbADX8
