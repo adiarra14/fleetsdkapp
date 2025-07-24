@@ -27,6 +27,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.final
+      args:
+        CACHEBUST: "$(date +%s)"
+      no_cache: true
     image: maxvision-final-fix:local
     restart: always
     container_name: balise-tcp-server

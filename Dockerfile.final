@@ -1,5 +1,9 @@
 FROM adiarra/maxvision-enhanced:v1.0
 
+# Cache busting argument
+ARG CACHEBUST=1
+RUN echo "Cache bust: $CACHEBUST"
+
 # Copy our service and patcher
 COPY com/maxvision/edge/gateway/sdk/report/LockReportServiceImpl.java /tmp/service.java
 COPY WorkingServicePatcher.java /tmp/patcher.java
