@@ -3,7 +3,7 @@ FROM maven:3.9.6-eclipse-temurin-17 AS builder
 WORKDIR /build
 
 # Copy the full Maven project
-COPY .. /build
+COPY . /build
 
 # Build only the backend-service module (contains SdkNettyApplication)
 RUN mvn -q -pl backend-service -am package -DskipTests

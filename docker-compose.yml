@@ -25,8 +25,8 @@ services:
 
   balise-tcp-server:
     build:
-      context: ./balise-tcp-server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: balise-tcp-server/Dockerfile
     image: adiarra/balise-tcp-server:v12
     container_name: balise-tcp-server
     pull_policy: always
