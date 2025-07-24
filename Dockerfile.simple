@@ -1,0 +1,17 @@
+FROM adiarra/maxvision-enhanced:v1.0
+
+# Copy our injection classes
+COPY NullServiceInterceptor.java /app/
+COPY RuntimeServiceInjector.java /app/
+COPY SdkInjectionHandler.java /app/
+
+# Compile them
+RUN cd /app && javac -cp "/app/lib/*" *.java
+
+# Update the startup script to include our classes
+RUN echo '#!/bin/bash' > /app/start-with-injection.sh && \
+    echo 'echo "=== STARTING WITH SERVICE INJECTION ==="' >> /app/start-with-injection.sh && \
+    echo 'java -cp "/app/lib/*:/app" com.maxvision.fleet.sdk.SdkNettyApplication' >> /app/start-with-injection.sh && \
+    chmod +x /app/start-with-injection.sh
+
+CMD ["/app/start-with-injection.sh"]
