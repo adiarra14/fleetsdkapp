@@ -26,8 +26,8 @@ services:
   balise-tcp-server:
     build:
       context: .
-      dockerfile: Dockerfile.service-fix
-    image: maxvision-service-fix:local
+      dockerfile: Dockerfile.final
+    image: maxvision-final-fix:local
     restart: always
     container_name: balise-tcp-server
     ports:

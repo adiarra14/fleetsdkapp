@@ -1,0 +1,37 @@
+FROM eclipse-temurin:17-jdk-alpine
+
+# Install required packages
+RUN apk add --no-cache bash curl netcat-openbsd
+
+# Create app directory
+WORKDIR /app
+
+# Copy all JAR files and dependencies
+COPY lib/ /app/lib/
+COPY target/classes/ /app/classes/
+COPY *.jar /app/ 2>/dev/null || true
+
+# Copy our service implementation
+COPY com/maxvision/edge/gateway/sdk/report/LockReportServiceImpl.java /app/
+COPY application.yml /app/
+COPY logback-spring.xml /app/ 2>/dev/null || true
+
+# Compile our service
+RUN javac -cp "/app/lib/*" -d /app/classes/ /app/LockReportServiceImpl.java
+
+# Create startup script
+RUN echo '#!/bin/bash' > /app/start.sh && \
+    echo 'echo "=== STARTING MAXVISION SDK WITH FIXED SERVICE ==="' >> /app/start.sh && \
+    echo 'echo "=== SERVICE LOCATION: com.maxvision.edge.gateway.sdk.report.LockReportServiceImpl ==="' >> /app/start.sh && \
+    echo 'java -cp "/app/lib/*:/app/classes" com.maxvision.fleet.sdk.SdkNettyApplication' >> /app/start.sh && \
+    chmod +x /app/start.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD nc -z localhost 6060 || exit 1
+
+# Expose ports
+EXPOSE 6060 8080
+
+# Start the application
+CMD ["/app/start.sh"]

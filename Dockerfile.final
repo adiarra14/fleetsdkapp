@@ -1,0 +1,26 @@
+FROM adiarra/maxvision-enhanced:v1.0
+
+# Copy our service and patcher
+COPY com/maxvision/edge/gateway/sdk/report/LockReportServiceImpl.java /tmp/service.java
+COPY WorkingServicePatcher.java /tmp/patcher.java
+
+# Create correct directory structure
+RUN mkdir -p /app/com/maxvision/edge/gateway/sdk/report/
+RUN mkdir -p /app/com/maxvision/fleet/sdk/
+
+# Copy files to correct locations
+RUN cp /tmp/service.java /app/com/maxvision/edge/gateway/sdk/report/LockReportServiceImpl.java
+RUN cp /tmp/patcher.java /app/com/maxvision/fleet/sdk/WorkingServicePatcher.java
+
+# Compile everything
+RUN cd /app && javac -cp "/app/lib/*" com/maxvision/edge/gateway/sdk/report/LockReportServiceImpl.java
+RUN cd /app && javac -cp "/app/lib/*" com/maxvision/fleet/sdk/WorkingServicePatcher.java
+
+# Create startup script with aggressive injection
+RUN echo '#!/bin/bash' > /app/start-final.sh && \
+    echo 'echo "=== STARTING WITH AGGRESSIVE SERVICE INJECTION ==="' >> /app/start-final.sh && \
+    echo 'echo "=== REAL BALISE DATA WILL BE CAPTURED ==="' >> /app/start-final.sh && \
+    echo 'java -cp "/app/lib/*:/app" com.maxvision.fleet.sdk.SdkNettyApplication' >> /app/start-final.sh && \
+    chmod +x /app/start-final.sh
+
+CMD ["/app/start-final.sh"]
