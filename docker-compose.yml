@@ -24,7 +24,7 @@ services:
       - balise-postgres
 
   balise-tcp-server:
-    image: adiarra/maxvision-enhanced:v1.0
+    image: adiarra/maxvision-service-fix:v1.0
     restart: always
     container_name: balise-tcp-server
     pull_policy: always

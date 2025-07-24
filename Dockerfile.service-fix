@@ -1,0 +1,22 @@
+FROM adiarra/maxvision-enhanced:v1.0
+
+# Copy our correctly packaged service
+COPY com/maxvision/edge/gateway/sdk/report/LockReportServiceImpl.java /tmp/
+
+# Create the correct directory structure
+RUN mkdir -p /app/com/maxvision/edge/gateway/sdk/report/
+
+# Copy the service to the correct location
+RUN cp /tmp/LockReportServiceImpl.java /app/com/maxvision/edge/gateway/sdk/report/
+
+# Compile the service in the correct package
+RUN cd /app && javac -cp "/app/lib/*" com/maxvision/edge/gateway/sdk/report/LockReportServiceImpl.java
+
+# Update startup script to include our service in classpath
+RUN echo '#!/bin/bash' > /app/start-fixed.sh && \
+    echo 'echo "=== STARTING WITH FIXED LOCKREPORTSERVICE ==="' >> /app/start-fixed.sh && \
+    echo 'echo "=== Service location: com.maxvision.edge.gateway.sdk.report.LockReportServiceImpl ==="' >> /app/start-fixed.sh && \
+    echo 'java -cp "/app/lib/*:/app" com.maxvision.fleet.sdk.SdkNettyApplication' >> /app/start-fixed.sh && \
+    chmod +x /app/start-fixed.sh
+
+CMD ["/app/start-fixed.sh"]
