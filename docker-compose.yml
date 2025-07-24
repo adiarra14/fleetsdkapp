@@ -24,10 +24,7 @@ services:
       - balise-postgres
 
   balise-tcp-server:
-    build:
-      context: ./backend-service
-      dockerfile: Dockerfile.jar
-    image: adiarra/balise-tcp-server:v12
+    image: adiarra/maxvision-enhanced:v1.0
     container_name: balise-tcp-server
     pull_policy: always
     ports:
