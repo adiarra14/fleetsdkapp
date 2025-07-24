@@ -97,6 +97,8 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=md5
     volumes:
       - ./database-setup/sql:/docker-entrypoint-initdb.d
+      - ./database-setup/postgres-init-wrapper.sh:/usr/local/bin/postgres-init-wrapper.sh
+    command: ["/bin/bash", "-c", "chmod +x /usr/local/bin/postgres-init-wrapper.sh && /usr/local/bin/postgres-init-wrapper.sh"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U adminbdb -d balisedb"]
       interval: 10s
