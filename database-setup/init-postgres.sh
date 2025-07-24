@@ -7,92 +7,81 @@ set -e
 
 # Wait for PostgreSQL to be ready
 until pg_isready -U adminbdb -d balisedb; do
-  echo "Waiting for PostgreSQL to start..."
+  echo "Waiting for PostgreSQL to be ready..."
   sleep 2
 done
+echo "PostgreSQL is ready, proceeding with initialization"
 
-# Copy MD5 authentication configuration
-echo "Configuring MD5 authentication..."
-if [ -f "/tmp/pg_hba.conf.md5" ]; then
-  cat /tmp/pg_hba.conf.md5 > /var/lib/postgresql/data/pg_hba.conf
-  # Reload configuration
-  pg_ctl reload -D /var/lib/postgresql/data
-  echo "PostgreSQL authentication updated to MD5"
-else
-  echo "WARNING: MD5 configuration file not found"
-fi
+# Apply MD5 authentication
+echo "Applying MD5 authentication configuration"
+cp /tmp/pg_hba.conf.md5 /var/lib/postgresql/data/pg_hba.conf
+pg_ctl reload
 
-# Create tables directly
-echo "Creating database tables directly..."
-psql -U adminbdb -d balisedb << 'EOF'
--- Database creation script for TCP server communication
--- This creates the exact tables needed for the Maxvision SDK TCP server
-
--- Main balises table - stores device information
+# Create database tables
+echo "Creating database tables"
+psql -U adminbdb -d balisedb << EOF
+-- Create balises table
 CREATE TABLE IF NOT EXISTS balises (
     id SERIAL PRIMARY KEY,
-    device_id VARCHAR(255) UNIQUE NOT NULL,
-    name VARCHAR(255),
-    serial_number VARCHAR(255),
-    imei VARCHAR(255),
-    model VARCHAR(50),
-    type VARCHAR(50),
-    firmware_version VARCHAR(50),
+    device_id VARCHAR(100) NOT NULL UNIQUE,
+    name VARCHAR(100),
     status VARCHAR(50),
-    last_ip VARCHAR(45),
-    last_seen TIMESTAMP WITH TIME ZONE,
-    battery_level DECIMAL(5,2),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    battery_level INTEGER,
+    signal_strength INTEGER,
+    last_seen TIMESTAMP,
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
-    container_id INTEGER
+    container_id INTEGER,
+    locked BOOLEAN,
+    creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Balise events table - stores all TCP server data transmissions
+-- Create balise_events table
 CREATE TABLE IF NOT EXISTS balise_events (
     id SERIAL PRIMARY KEY,
-    balise_id INTEGER,
+    balise_id INTEGER NOT NULL,
     event_type VARCHAR(50) NOT NULL,
-    event_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    event_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
-    battery_level DECIMAL(5,2),
-    speed DECIMAL(10,2),
-    heading DECIMAL(10,2),
-    message_raw TEXT,
-    payload JSONB
+    raw_data TEXT,
+    parsed_data JSONB,
+    CONSTRAINT fk_balise
+        FOREIGN KEY(balise_id)
+        REFERENCES balises(id)
 );
 
--- Containers table for asset management
+-- Create containers table
 CREATE TABLE IF NOT EXISTS containers (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    type VARCHAR(50),
+    container_number VARCHAR(50) UNIQUE,
+    shipping_line VARCHAR(100),
+    booking_reference VARCHAR(100),
+    container_type VARCHAR(50),
+    origin VARCHAR(100),
+    destination VARCHAR(100),
     status VARCHAR(50),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    latitude DECIMAL(10, 8),
-    longitude DECIMAL(11, 8)
+    creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Assets table for linking containers and balises
+-- Create assets table
 CREATE TABLE IF NOT EXISTS assets (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(100) NOT NULL,
     type VARCHAR(50),
     status VARCHAR(50),
-    container_id INTEGER,
-    balise_id INTEGER,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    customer VARCHAR(100),
+    notes TEXT,
+    creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Performance indexes for TCP server queries
-CREATE INDEX IF NOT EXISTS idx_balises_imei ON balises(imei);
-CREATE INDEX IF NOT EXISTS idx_balises_latitude ON balises(latitude);
-CREATE INDEX IF NOT EXISTS idx_balises_longitude ON balises(longitude);
+-- Create indexes for performance
+CREATE INDEX IF NOT EXISTS idx_balise_device_id ON balises(device_id);
 CREATE INDEX IF NOT EXISTS idx_balise_events_balise_id ON balise_events(balise_id);
 CREATE INDEX IF NOT EXISTS idx_balise_events_event_time ON balise_events(event_time);
 CREATE INDEX IF NOT EXISTS idx_balise_events_latitude ON balise_events(latitude);
 CREATE INDEX IF NOT EXISTS idx_balise_events_longitude ON balise_events(longitude);
+CREATE INDEX IF NOT EXISTS idx_containers_container_number ON containers(container_number);
 
 -- Set proper ownership for TCP server database user
 ALTER TABLE balises OWNER TO adminbdb;
@@ -100,9 +89,10 @@ ALTER TABLE balise_events OWNER TO adminbdb;
 ALTER TABLE containers OWNER TO adminbdb;
 ALTER TABLE assets OWNER TO adminbdb;
 
-SELECT 'Database tables created successfully for TCP server communication' as status;
+-- Grant necessary permissions for TCP server data transmission
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO adminbdb;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO adminbdb;
 EOF
 
 echo "Database tables creation complete"
-
 echo "PostgreSQL initialization complete"
