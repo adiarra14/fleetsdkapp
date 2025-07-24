@@ -183,7 +183,7 @@ services:
         -- Grant necessary permissions
         GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO adminbdb;
         GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO adminbdb;
-EOSQL
+        EOSQL
         
         echo "Database initialization completed successfully!"
         
