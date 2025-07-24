@@ -101,20 +101,19 @@ public class LockReportServiceImpl implements LockReportService {
         }
         
         try {
-            // Check if balise exists (using imei column as per schema)
+            // Check if balise exists (using device_id column as per schema)
             Integer count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM balises WHERE imei = ?", 
+                "SELECT COUNT(*) FROM balises WHERE device_id = ?", 
                 Integer.class, 
                 deviceId
             );
             
-            if (count == 0) {
+            if (count == null || count == 0) {
                 // Create new balise entry with required fields
                 jdbcTemplate.update(
-                    "INSERT INTO balises (name, imei, type, status, last_seen, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO balises (name, device_id, status, last_seen, creation_date) VALUES (?, ?, ?, ?, ?)",
                     "AUTO-" + deviceId,
                     deviceId,
-                    "TY5201-LOCK",
                     "ACTIVE",
                     Timestamp.valueOf(LocalDateTime.now()),
                     Timestamp.valueOf(LocalDateTime.now())
@@ -123,7 +122,7 @@ public class LockReportServiceImpl implements LockReportService {
             } else {
                 // Update last_seen
                 jdbcTemplate.update(
-                    "UPDATE balises SET last_seen = ? WHERE imei = ?",
+                    "UPDATE balises SET last_seen = ? WHERE device_id = ?",
                     Timestamp.valueOf(LocalDateTime.now()),
                     deviceId
                 );
@@ -142,22 +141,35 @@ public class LockReportServiceImpl implements LockReportService {
         }
         
         try {
-            // Get balise ID from imei (foreign key constraint removed, but good practice)
+            // Get balise ID from device_id (foreign key constraint required)
             Integer baliseId = null;
             try {
                 baliseId = jdbcTemplate.queryForObject(
-                    "SELECT id FROM balises WHERE imei = ?", 
+                    "SELECT id FROM balises WHERE device_id = ?", 
                     Integer.class, 
                     deviceId
                 );
             } catch (Exception e) {
-                System.out.println("WARNING: Could not find balise ID for: " + deviceId + ", using device ID directly");
-                baliseId = deviceId.hashCode(); // Fallback ID
+                System.out.println("WARNING: Could not find balise ID for: " + deviceId + ", attempting to create new balise entry");
+                // Try to create the balise entry first
+                ensureBaliseExists(deviceId);
+                
+                // Try again to get the balise ID
+                try {
+                    baliseId = jdbcTemplate.queryForObject(
+                        "SELECT id FROM balises WHERE device_id = ?", 
+                        Integer.class, 
+                        deviceId
+                    );
+                } catch (Exception ex) {
+                    System.err.println("CRITICAL ERROR: Failed to get or create balise ID for: " + deviceId);
+                    return; // Cannot proceed without valid balise_id due to foreign key constraint
+                }
             }
             
             // Store event with correct schema columns
             jdbcTemplate.update(
-                "INSERT INTO balise_events (balise_id, event_type, event_time, message_raw) VALUES (?, ?, ?, ?)",
+                "INSERT INTO balise_events (balise_id, event_type, event_time, raw_data) VALUES (?, ?, ?, ?)",
                 baliseId,
                 messageType,
                 Timestamp.valueOf(LocalDateTime.now()),
