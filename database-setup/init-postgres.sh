@@ -24,8 +24,8 @@ fi
 
 # Ensure tables are created
 echo "Creating database tables..."
-if [ -f "/docker-entrypoint-initdb.d/01-create-tcp-database.sql" ]; then
-  psql -U adminbdb -d balisedb -f /docker-entrypoint-initdb.d/01-create-tcp-database.sql
+if [ -f "/docker-entrypoint-initdb.d/create-tcp-database.sql" ]; then
+  psql -U adminbdb -d balisedb -f /docker-entrypoint-initdb.d/create-tcp-database.sql
   echo "Database tables created successfully"
 else
   echo "WARNING: Table creation script not found"
