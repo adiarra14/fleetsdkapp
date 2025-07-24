@@ -6,7 +6,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
-import java.util.Map;
 
 /**
  * Enhanced SDK injection handler to ensure LockReportService is properly injected
@@ -14,22 +13,22 @@ import java.util.Map;
  */
 @Component
 public class SdkInjectionHandler implements ApplicationContextAware {
-    
+
     private static ApplicationContext applicationContext;
     private static LockReportService lockReportService;
-    
+
     @Override
     public void setApplicationContext(ApplicationContext context) throws BeansException {
         applicationContext = context;
         System.out.println("=== SDK INJECTION HANDLER INITIALIZED ===");
-        
+
         // Immediately try to inject the service
         injectLockReportService();
-        
+
         // Set up periodic injection attempts for SDK timing issues
         setupPeriodicInjection();
     }
-    
+
     /**
      * Inject LockReportService into SDK components
      */
@@ -38,38 +37,38 @@ public class SdkInjectionHandler implements ApplicationContextAware {
             System.out.println("WARNING: ApplicationContext not yet available");
             return;
         }
-        
+
         try {
             // Get the LockReportService bean
             lockReportService = applicationContext.getBean(LockReportService.class);
             System.out.println("SUCCESS: Retrieved LockReportService bean: " + lockReportService.getClass().getName());
-            
+
             // Register in global registry
             SdkServiceRegistry.registerLockReportService(lockReportService);
-            
+
             // Try to inject into SDK components using reflection
             injectIntoSdkComponents();
-            
+
         } catch (Exception e) {
             System.err.println("ERROR: Failed to inject LockReportService: " + e.getMessage());
             e.printStackTrace();
         }
     }
-    
+
     /**
      * Use reflection to inject service into SDK components
      */
     private static void injectIntoSdkComponents() {
         try {
             System.out.println("=== ATTEMPTING SDK COMPONENT INJECTION ===");
-            
+
             // Try to find and inject into common SDK handler classes
             String[] possibleHandlerClasses = {
-                "com.maxvision.edge.gateway.lock.netty.handler.a.l",
-                "com.maxvision.edge.gateway.lock.netty.handler.LockMessageHandler",
-                "com.maxvision.edge.gateway.lock.netty.handler.MessageHandler"
+                    "com.maxvision.edge.gateway.lock.netty.handler.a.l",
+                    "com.maxvision.edge.gateway.lock.netty.handler.LockMessageHandler",
+                    "com.maxvision.edge.gateway.lock.netty.handler.MessageHandler"
             };
-            
+
             for (String className : possibleHandlerClasses) {
                 try {
                     Class<?> handlerClass = Class.forName(className);
@@ -78,12 +77,12 @@ public class SdkInjectionHandler implements ApplicationContextAware {
                     System.out.println("INFO: Handler class not found: " + className);
                 }
             }
-            
+
         } catch (Exception e) {
             System.err.println("ERROR: SDK component injection failed: " + e.getMessage());
         }
     }
-    
+
     /**
      * Inject service into a specific class using reflection
      */
@@ -93,10 +92,10 @@ public class SdkInjectionHandler implements ApplicationContextAware {
             for (Field field : fields) {
                 if (field.getType().equals(LockReportService.class)) {
                     field.setAccessible(true);
-                    
+
                     // Try to set the field on all instances
                     System.out.println("Found LockReportService field: " + field.getName() + " in " + targetClass.getName());
-                    
+
                     // This is a static injection approach - may need instance-specific injection
                     try {
                         field.set(null, lockReportService);
@@ -110,7 +109,7 @@ public class SdkInjectionHandler implements ApplicationContextAware {
             System.err.println("ERROR: Failed to inject into class " + targetClass.getName() + ": " + e.getMessage());
         }
     }
-    
+
     /**
      * Set up periodic injection attempts to handle SDK timing issues
      */
@@ -129,7 +128,7 @@ public class SdkInjectionHandler implements ApplicationContextAware {
         injectionThread.setDaemon(true);
         injectionThread.start();
     }
-    
+
     /**
      * Get the current LockReportService instance
      */
