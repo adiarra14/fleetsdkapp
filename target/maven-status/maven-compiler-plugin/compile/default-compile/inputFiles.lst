@@ -1,8 +1,4 @@
-H:\ynnov\CVS\FleetApp\sdk\src\main\java\com\maxvision\fleet\controller\BaliseDataController.java
-H:\ynnov\CVS\FleetApp\sdk\src\main\java\com\maxvision\fleet\controller\DeviceReportController.java
-H:\ynnov\CVS\FleetApp\sdk\src\main\java\com\maxvision\fleet\entity\DeviceReport.java
-H:\ynnov\CVS\FleetApp\sdk\src\main\java\com\maxvision\fleet\FleetGatewayApplication.java
-H:\ynnov\CVS\FleetApp\sdk\src\main\java\com\maxvision\fleet\repository\DeviceReportRepository.java
-H:\ynnov\CVS\FleetApp\sdk\src\main\java\com\maxvision\fleet\service\DeviceReportService.java
-H:\ynnov\CVS\FleetApp\sdk\src\main\java\com\maxvision\fleet\service\LockReportServiceImpl.java
-H:\ynnov\CVS\FleetApp\sdk\src\main\java\com\maxvision\fleet\tcp\BaliseDataServer.java
+H:\ynnov\CVS\FleetApp\sdk\maxvision-clean\src\main\java\com\maxvision\demo\LockSdkApplication.java
+H:\ynnov\CVS\FleetApp\sdk\maxvision-clean\src\main\java\com\maxvision\demo\controller\LockController.java
+H:\ynnov\CVS\FleetApp\sdk\maxvision-clean\src\main\java\com\maxvision\demo\service\LockReportServiceImpl.java
+H:\ynnov\CVS\FleetApp\sdk\maxvision-clean\src\main\java\com\maxvision\demo\service\LockDemoService.java

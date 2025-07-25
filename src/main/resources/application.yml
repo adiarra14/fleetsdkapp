@@ -1,22 +1,26 @@
-server:
-  port: 6060
 spring:
+  application:
+    name: lock-sdk-demo
+
+  # Database Configuration
   datasource:
-    url: jdbc:postgresql://localhost:5432/fleetdb
-    username: fleetuser
-    password: fleetpass
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://balise-postgres:5432/balisedb}
+    username: ${SPRING_DATASOURCE_USERNAME:adminbdb}
+    password: ${SPRING_DATASOURCE_PASSWORD:To7Z2UCeWTsriPxbADX8}
     driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    # Connection pool settings
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
 
 mvgateway:
   servers:
     - port: 8910
       encrypt: true
-      name: maxvision
+      name: maxvision   # Do not modify
 
 logging:
-  config: classpath:logback-config.xml
+  config: classpath:logback-spring.xml 

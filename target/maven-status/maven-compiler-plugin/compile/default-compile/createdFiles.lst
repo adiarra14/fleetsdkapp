@@ -1,0 +1,5 @@
+com\maxvision\demo\LockSdkApplication.class
+com\maxvision\demo\controller\LockController.class
+com\maxvision\demo\service\LockDemoService.class
+com\maxvision\demo\service\LockReportServiceImpl.class
+com\maxvision\demo\LockSdkApplication$CustomGenerator.class
