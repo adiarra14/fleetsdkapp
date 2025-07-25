@@ -1,12 +1,15 @@
 FROM adiarra/maxvision-enhanced:v1.0
 
-# Cache busting argument
+# Cache busting arguments
 ARG CACHEBUST=1
-RUN echo "Cache bust: $CACHEBUST"
+ARG REBUILD_FORCE=default
+RUN echo "Cache bust: $CACHEBUST - Force rebuild: $REBUILD_FORCE"
 
-# Copy our service and patcher
+# Copy our service, patcher, and configuration
+COPY application.yml /app/application.yml
 COPY com/maxvision/edge/gateway/sdk/report/LockReportServiceImpl.java /tmp/service.java
 COPY WorkingServicePatcher.java /tmp/patcher.java
+COPY StaticServiceHolder.java /tmp/holder.java
 
 # Create correct directory structure
 RUN mkdir -p /app/com/maxvision/edge/gateway/sdk/report/

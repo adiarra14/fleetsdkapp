@@ -29,13 +29,14 @@ services:
       dockerfile: Dockerfile.final
       args:
         CACHEBUST: "$(date +%s)"
+        REBUILD_FORCE: "port-8910-fix"
       no_cache: true
-    image: maxvision-final-fix:local
+      pull: false
+    image: maxvision-port-8910:local
     restart: always
     container_name: balise-tcp-server
     ports:
       - "8910:8910"
-      - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - JAVA_OPTS=-Xmx512m -Xms256m -Dlogging.level.com.maxvision=TRACE -Dlogging.level.io.netty=DEBUG -Dlogging.level.root=INFO
