@@ -2,6 +2,7 @@ package com.maxvision.fleet.sdk;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Bean;
@@ -95,7 +96,16 @@ public class SdkNettyApplication {
         System.out.println("=== ENHANCED INJECTION SYSTEM ACTIVE ===");
         
         SpringApplication app = new SpringApplication(SdkNettyApplication.class);
-        app.run(args);
+        ConfigurableApplicationContext context = app.run(args);
+        
+        // Initialize rescue services as backup
+        try {
+            LogDataExtractor extractor = context.getBean(LogDataExtractor.class);
+            extractor.processKnownBaliseData();
+            System.out.println("✅ Data rescue services initialized");
+        } catch (Exception e) {
+            System.out.println("⚠️ Could not initialize rescue services: " + e.getMessage());
+        }
         
         System.out.println("=== SDK NETTY SERVER STARTED SUCCESSFULLY ===");
         System.out.println("=== INJECTION HANDLER INITIALIZED ===");
