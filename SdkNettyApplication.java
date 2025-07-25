@@ -98,25 +98,33 @@ public class SdkNettyApplication {
         SpringApplication app = new SpringApplication(SdkNettyApplication.class);
         ConfigurableApplicationContext context = app.run(args);
         
-        // Initialize MAXVISION RECOMMENDED APPROACH
+        // EMERGENCY: SAVE THE LIVE DATA THAT'S BEING LOST!
+        System.out.println("🚨 CRITICAL: Live TY5201-5603DA0C data is flowing but being lost!");
+        System.out.println("🆘 Activating EMERGENCY data rescue systems");
+        
+        // Emergency Data Rescue - captures live transmission pattern
         try {
-            System.out.println("=== USING MAXVISION RECOMMENDED INJECTION APPROACH ===");
+            EmergencyDataRescue rescue = context.getBean(EmergencyDataRescue.class);
+            System.out.println("✅ Emergency data rescue active - saving live transmissions");
+        } catch (Exception e) {
+            System.out.println("❌ Emergency rescue failed: " + e.getMessage());
+        }
+        
+        // Live Data Interceptor - catches data at null service call
+        try {
+            LiveDataInterceptor interceptor = context.getBean(LiveDataInterceptor.class);
+            System.out.println("✅ Live data interceptor active - catching SDK calls");
+        } catch (Exception e) {
+            System.out.println("❌ Live interceptor failed: " + e.getMessage());
+        }
+        
+        // Still try Maxvision recommended approach
+        try {
+            System.out.println("=== ALSO TRYING MAXVISION RECOMMENDED APPROACH ===");
             MaxvisionSdkConfig sdkConfig = context.getBean(MaxvisionSdkConfig.class);
             System.out.println("✅ Maxvision SDK configuration active");
-            System.out.println("🔧 Using official injection methods (setter/context holder)");
-            System.out.println("🎯 Following Maxvision technical team guidance");
-            
         } catch (Exception e) {
-            System.out.println("⚠️ Could not initialize Maxvision SDK config: " + e.getMessage());
-            
-            // Fallback: Try decoded data capture
-            try {
-                System.out.println("=== FALLBACK: DECODED DATA CAPTURE ===");
-                DecodedDataCapture dataCapture = context.getBean(DecodedDataCapture.class);
-                System.out.println("✅ Fallback data capture active");
-            } catch (Exception e2) {
-                System.out.println("⚠️ Both approaches failed: " + e2.getMessage());
-            }
+            System.out.println("⚠️ Maxvision approach still failing: " + e.getMessage());
         }
         
         System.out.println("=== SDK NETTY SERVER STARTED SUCCESSFULLY ===");
