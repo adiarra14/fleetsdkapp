@@ -3,7 +3,7 @@ services:
     build:
       context: ./backend-service
       dockerfile: Dockerfile.jar
-    image: adiarra/balise-sdk-service:latest
+    # image: adiarra/balise-sdk-service:latest  # Build from source
     container_name: balise-sdk-service
     ports:
       - "6062:8080"
@@ -32,7 +32,7 @@ services:
         CACHE_BUST: "emergency-rescue-$(date +%s)"
       no_cache: true
       pull: false
-    image: maxvision-emergency-rescue:v4.0-simple
+    # image: maxvision-emergency-rescue:v4.0-simple  # Build from source
     restart: always
     container_name: balise-tcp-server
     ports:
@@ -60,7 +60,7 @@ services:
     build:
       context: ./web-ui
       dockerfile: Dockerfile
-    image: adiarra/balise-web-ui:latest
+    # image: adiarra/balise-web-ui:latest  # Build from source
     container_name: balise-web-ui
     ports:
       - "6061:80"
@@ -71,7 +71,7 @@ services:
     build:
       context: ./cma-cgm
       dockerfile: docker/Dockerfile.standalone
-    image: adiarra/cmacgm-integration:latest
+    # image: adiarra/cmacgm-integration:latest  # Build from source
     container_name: cmacgm-integration
     ports:
       - "6064:8081"
