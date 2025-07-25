@@ -1,0 +1,59 @@
+Objet : Confirmation des tests de connexion UAT - SiniGroup
+
+Bonjour Sophie,
+
+J'espère que vous allez bien.
+
+Suite à votre message du vendredi 11/07 concernant les accès à votre environnement UAT, je vous confirme que nous avons bien reçu les informations de connexion et le mot de passe (expéditeur : ho.api-noreply).
+
+**TESTS DE CONNEXION RÉALISÉS AVEC SUCCÈS**
+
+Nous avons effectué ce jour (25/07/2025) les premiers tests de connexion et d'envoi de données vers votre environnement UAT avec les résultats suivants :
+
+✅ **Authentification OAuth2** : Connexion réussie avec le client_id "beapp-sinigroup"
+✅ **Envoi de coordonnées GPS** : Données GPS transmises avec succès (statut 201)
+✅ **Envoi d'événements de transport** : Événements TRANSPORT/ARRI/ACT transmis avec succès (statut 201)
+
+**DONNÉES DE TEST TRANSMISES**
+
+Les données de test suivantes ont été envoyées vers votre API :
+
+- **Référence conteneur** : APZU2106333
+- **Expéditeur** : SINIGROUP
+- **Partenaire transport** : SINI TRANSPORT MALI
+- **Coordonnées GPS** : Bamako, Mali (12.6392, -8.0029)
+- **Type d'événement** : Arrivée réelle au dépôt client (TRANSPORT/ARRI/ACT)
+- **Horodatage** : 2024-07-25T08:00:00Z
+
+**CONFIGURATION TECHNIQUE**
+
+Notre système d'intégration est maintenant opérationnel avec :
+- Authentification automatique via OAuth2
+- Format de données conforme à votre spécification Swagger
+- Gestion des coordonnées GPS en temps réel
+- Transmission d'événements de transport (arrivées/départs)
+
+**PROCHAINES ÉTAPES**
+
+1. Pourriez-vous confirmer la bonne réception de ces données de test dans votre système ?
+2. Nous sommes prêts à procéder aux tests avec des données réelles de nos balises TY5201-LOCK
+3. Nous pouvons programmer une session de tests en temps réel selon votre disponibilité
+
+Notre équipe technique reste à votre disposition pour toute question ou ajustement nécessaire.
+
+Nous vous remercions pour votre accompagnement et attendons votre retour pour confirmer la bonne réception des données.
+
+Bien cordialement,
+
+Antoine DIARRA
+Responsable Technique
+SiniGroup - Sinigroupe
+Email : a.diarra@sinigroup.net
+Tel : [votre numéro]
+
+---
+**Informations techniques complémentaires :**
+- Environnement de test : UAT CMA-CGM
+- API utilisée : https://apis-uat.cma-cgm.net/technical/generic/eagle/v1
+- Scope : tracking:write:be
+- Tests effectués le : 25/07/2025 à 10h49 (UTC+2)

@@ -3,6 +3,7 @@ FROM adiarra/maxvision-enhanced:v1.0
 # Cache busting arguments
 ARG CACHEBUST=1
 ARG REBUILD_FORCE=default
+ARG CACHE_BUST=default
 RUN echo "Cache bust: $CACHEBUST - Force rebuild: $REBUILD_FORCE"
 
 # Copy our service, patcher, and configuration

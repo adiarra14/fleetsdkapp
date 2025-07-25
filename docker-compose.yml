@@ -3,7 +3,7 @@ services:
     build:
       context: ./backend-service
       dockerfile: Dockerfile.jar
-    image: adiarra/balise-sdk-service:latest
+    image: adiarra/maxvision-emergency:v3.0-rescueice:latest
     container_name: balise-sdk-service
     ports:
       - "6062:8080"
@@ -28,11 +28,11 @@ services:
       context: .
       dockerfile: Dockerfile.final
       args:
-        CACHEBUST: "$(date +%s)"
-        REBUILD_FORCE: "port-8910-fix"
+        REBUILD_FORCE: "2025-07-25-11-45-EMERGENCY"
+        CACHE_BUST: "emergency-rescue-$(date +%s)"
       no_cache: true
       pull: false
-    image: maxvision-port-8910:local
+    image: maxvision-emergency-rescue:v3.0
     restart: always
     container_name: balise-tcp-server
     ports:
