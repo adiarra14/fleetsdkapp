@@ -98,21 +98,19 @@ public class SdkNettyApplication {
         SpringApplication app = new SpringApplication(SdkNettyApplication.class);
         ConfigurableApplicationContext context = app.run(args);
         
-        // Initialize synchronized data generator (MAIN SOLUTION)
+        // Initialize INTERNAL SDK APPROACH (NEW SOLUTION)
         try {
-            SynchronizedDataGenerator generator = context.getBean(SynchronizedDataGenerator.class);
-            System.out.println("✅ Synchronized data generator active");
-            System.out.println("📊 Will generate data every 30 seconds matching your device");
+            System.out.println("=== STARTING INTERNAL SDK APPROACH ===");
+            InternalSdkInitializer.initialize();
+            System.out.println("✅ Internal SDK initializer active");
+            System.out.println("🔧 Using SDK's own architecture (no external dependencies)");
+            
+            // Also try static field injection
+            InternalSdkInitializer.injectViaStaticField();
+            System.out.println("✅ Static field injection attempted");
+            
         } catch (Exception e) {
-            System.out.println("⚠️ Could not initialize data generator: " + e.getMessage());
-        }
-        
-        // Initialize exception data extractor as backup
-        try {
-            ExceptionDataExtractor extractor = context.getBean(ExceptionDataExtractor.class);
-            System.out.println("✅ Exception data extractor active");
-        } catch (Exception e) {
-            System.out.println("⚠️ Could not initialize exception extractor: " + e.getMessage());
+            System.out.println("⚠️ Could not initialize internal SDK approach: " + e.getMessage());
         }
         
         System.out.println("=== SDK NETTY SERVER STARTED SUCCESSFULLY ===");
