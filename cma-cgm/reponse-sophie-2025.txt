@@ -1,0 +1,51 @@
+Objet : Re: Tests de connexion UAT - Données 2025 transmises avec succès
+
+Bonjour Sophie,
+
+Merci pour votre retour positif concernant nos tests de connexion.
+
+Je prends bonne note de l'ajout d'Antoine FOULQUIER en copie pour le suivi pendant vos congés du 04 au 17/08.
+
+**CORRECTION EFFECTUÉE - DONNÉES 2025 TRANSMISES**
+
+Suite à votre demande concernant l'horodatage, nous avons immédiatement corrigé et renvoyé les événements avec la date d'aujourd'hui en 2025.
+
+**Nouveaux tests effectués à 12h03 (25/07/2025) :**
+
+✅ **Authentification OAuth2** : Connexion réussie (200)
+✅ **Coordonnées GPS** : Transmises avec succès (201) - **Horodatage : 2025-07-25T08:00:00Z**
+✅ **Événements transport** : Transmis avec succès (201) - **Horodatage : 2025-07-25T08:00:00Z**
+
+**Détails techniques des données 2025 transmises :**
+- **Date/Heure** : 2025-07-25T08:00:00Z (format UTC)
+- **Référence conteneur** : APZU2106333
+- **Expéditeur** : SINIGROUP
+- **Partenaire** : SINI TRANSPORT MALI
+- **Localisation** : Bamako, Mali (12.6392, -8.0029)
+- **Type événement** : TRANSPORT/ARRI/ACT (Arrivée réelle)
+
+**Rate Limits observés :**
+- Limite horaire : 100 requêtes
+- Requêtes restantes : 98/100
+- Système de limitation fonctionnel
+
+Les données sont maintenant consultables dans votre interface avec la date correcte de 2025.
+
+Pouvez-vous confirmer la bonne réception et visibilité de ces nouvelles données dans votre système ?
+
+Nous restons disponibles pour tout ajustement supplémentaire et sommes prêts pour les tests avec nos données réelles de balises.
+
+Bon weekend et merci pour votre accompagnement !
+
+Bien cordialement,
+
+Antoine DIARRA
+Responsable Technique
+SiniGroup - Sinigroupe
+Email : a.diarra@sinigroup.net
+
+---
+**Informations techniques :**
+- Test effectué le : 25/07/2025 à 12h03 (UTC+2)
+- Correlation IDs : 5bda91dd-7097-4243-afac-e9130970fc57 / 6e75879c-1ea8-4ce7-9b5b-e05003e96e17
+- API Version : 1.0.16

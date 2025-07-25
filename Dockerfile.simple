@@ -1,14 +1,17 @@
 FROM adiarra/maxvision-enhanced:v1.0
 
-# Copy our injection classes
-COPY NullServiceInterceptor.java /app/
-COPY RuntimeServiceInjector.java /app/
-COPY SdkInjectionHandler.java /app/
+# Cache busting for emergency deployment
+ARG REBUILD_FORCE=emergency-rescue
+ARG CACHE_BUST=emergency
+RUN echo " EMERGENCY RESCUE DEPLOYMENT: $REBUILD_FORCE - $CACHE_BUST"
 
-# Compile them
-RUN cd /app && javac -cp "/app/lib/*" *.java
+# Copy ALL source files to app directory
+COPY . /app/emergency/
 
-# Update the startup script to include our classes
+# Copy our main classes to the correct locations
+RUN mkdir -p /app/com/maxvision/fleet/sdk/
+RUN cp /app/emergency/*.java /app/com/maxvision/fleet/sdk/ 2>/dev/null || true
+RUN cp /app/emergency/com/maxvision/edge/gateway/sdk/report/*.java /app/com/maxvision/edge/gateway/sdk/report/ 2>/dev/null || true
 RUN echo '#!/bin/bash' > /app/start-with-injection.sh && \
     echo 'echo "=== STARTING WITH SERVICE INJECTION ==="' >> /app/start-with-injection.sh && \
     echo 'java -cp "/app/lib/*:/app" com.maxvision.fleet.sdk.SdkNettyApplication' >> /app/start-with-injection.sh && \

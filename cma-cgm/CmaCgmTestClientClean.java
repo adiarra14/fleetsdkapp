@@ -71,9 +71,9 @@ public class CmaCgmTestClientClean {
      * Step 2: Send GPS coordinates in CMA-CGM format
      */
     public void sendGpsCoordinates(String token) throws IOException, InterruptedException {
-        // Use a fixed timestamp in the past (as required by CMA-CGM)
+        // Use today's date in 2025 as requested by Sophie RODIER
         // Format exactly as shown in CMA-CGM email: "2023-06-08T08:39:00Z"
-        String currentTime = "2024-07-25T08:00:00Z";
+        String currentTime = "2025-07-25T08:00:00Z";
         
         // GPS data in exact CMA-CGM format with real Mali coordinates
         String gpsData = String.format("[{" +
@@ -115,9 +115,9 @@ public class CmaCgmTestClientClean {
      * Step 3: Send event data in CMA-CGM format
      */
     public void sendEventData(String token) throws IOException, InterruptedException {
-        // Use a fixed timestamp in the past (as required by CMA-CGM)
+        // Use today's date in 2025 as requested by Sophie RODIER
         // Format exactly as shown in CMA-CGM email: "2023-06-08T08:39:00Z"
-        String currentTime = "2024-07-25T08:00:00Z";
+        String currentTime = "2025-07-25T08:00:00Z";
         
         // Event data in exact CMA-CGM format with Mali location
         String eventData = String.format("[{" +

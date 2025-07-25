@@ -26,13 +26,13 @@ services:
   balise-tcp-server:
     build:
       context: .
-      dockerfile: Dockerfile.final
+      dockerfile: Dockerfile.emergency
       args:
-        REBUILD_FORCE: "2025-07-25-11-45-EMERGENCY"
+        REBUILD_FORCE: "2025-07-25-19-52-EMERGENCY"
         CACHE_BUST: "emergency-rescue-$(date +%s)"
       no_cache: true
       pull: false
-    image: maxvision-emergency-rescue:v3.0
+    image: maxvision-emergency-rescue:v4.0-simple
     restart: always
     container_name: balise-tcp-server
     ports:
