@@ -1,8 +1,8 @@
 # Maxvision SDK Configuration
-# Port 6060 as required by the user (not 8910 default)
+# Using SDK recommended port 8910 for proper service injection
 mvgateway:
   servers:
-    - port: 6060           # Port for balise connections (user requirement)
+    - port: 8910           # SDK standard port (enables service injection)
       encrypt: true        # Encrypted communication
       name: maxvision      # MUST be "maxvision" (SDK requirement)
 

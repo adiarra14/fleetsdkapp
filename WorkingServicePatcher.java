@@ -64,6 +64,16 @@ public class WorkingServicePatcher {
             return;
         }
 
+        // ALSO register service statically as backup
+        try {
+            Class<?> holderClass = Class.forName("com.maxvision.edge.gateway.sdk.report.StaticServiceHolder");
+            java.lang.reflect.Method setMethod = holderClass.getMethod("setInstance", LockReportService.class);
+            setMethod.invoke(null, lockReportService);
+            System.out.println("✅ Service registered in static holder as backup");
+        } catch (Exception e) {
+            System.out.println("⚠️ Could not register static service: " + e.getMessage());
+        }
+        
         // Start aggressive patching
         scheduler.scheduleAtFixedRate(this::patchAllHandlers, 1, 5, TimeUnit.SECONDS);
         System.out.println("✅ Started aggressive service injection every 5 seconds");

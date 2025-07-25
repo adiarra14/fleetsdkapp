@@ -34,7 +34,8 @@ services:
     restart: always
     container_name: balise-tcp-server
     ports:
-      - "6060:6060"
+      - "8910:8910"
+      - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - JAVA_OPTS=-Xmx512m -Xms256m -Dlogging.level.com.maxvision=TRACE -Dlogging.level.io.netty=DEBUG -Dlogging.level.root=INFO
