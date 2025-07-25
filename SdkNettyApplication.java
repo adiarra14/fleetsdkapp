@@ -98,16 +98,25 @@ public class SdkNettyApplication {
         SpringApplication app = new SpringApplication(SdkNettyApplication.class);
         ConfigurableApplicationContext context = app.run(args);
         
-        // Initialize DECODED DATA CAPTURE (KEEPS SDK LOGIC)
+        // Initialize MAXVISION RECOMMENDED APPROACH
         try {
-            System.out.println("=== STARTING DECODED DATA CAPTURE ===");
-            DecodedDataCapture dataCapture = context.getBean(DecodedDataCapture.class);
-            System.out.println("✅ Decoded data capture active");
-            System.out.println("🔧 Preserves SDK decoding logic - captures before null call");
-            System.out.println("📊 SDK processes data → We capture decoded JSON → Store in database");
+            System.out.println("=== USING MAXVISION RECOMMENDED INJECTION APPROACH ===");
+            MaxvisionSdkConfig sdkConfig = context.getBean(MaxvisionSdkConfig.class);
+            System.out.println("✅ Maxvision SDK configuration active");
+            System.out.println("🔧 Using official injection methods (setter/context holder)");
+            System.out.println("🎯 Following Maxvision technical team guidance");
             
         } catch (Exception e) {
-            System.out.println("⚠️ Could not initialize decoded data capture: " + e.getMessage());
+            System.out.println("⚠️ Could not initialize Maxvision SDK config: " + e.getMessage());
+            
+            // Fallback: Try decoded data capture
+            try {
+                System.out.println("=== FALLBACK: DECODED DATA CAPTURE ===");
+                DecodedDataCapture dataCapture = context.getBean(DecodedDataCapture.class);
+                System.out.println("✅ Fallback data capture active");
+            } catch (Exception e2) {
+                System.out.println("⚠️ Both approaches failed: " + e2.getMessage());
+            }
         }
         
         System.out.println("=== SDK NETTY SERVER STARTED SUCCESSFULLY ===");
