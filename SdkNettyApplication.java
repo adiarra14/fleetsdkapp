@@ -98,19 +98,16 @@ public class SdkNettyApplication {
         SpringApplication app = new SpringApplication(SdkNettyApplication.class);
         ConfigurableApplicationContext context = app.run(args);
         
-        // Initialize INTERNAL SDK APPROACH (NEW SOLUTION)
+        // Initialize DECODED DATA CAPTURE (KEEPS SDK LOGIC)
         try {
-            System.out.println("=== STARTING INTERNAL SDK APPROACH ===");
-            InternalSdkInitializer.initialize();
-            System.out.println("✅ Internal SDK initializer active");
-            System.out.println("🔧 Using SDK's own architecture (no external dependencies)");
-            
-            // Also try static field injection
-            InternalSdkInitializer.injectViaStaticField();
-            System.out.println("✅ Static field injection attempted");
+            System.out.println("=== STARTING DECODED DATA CAPTURE ===");
+            DecodedDataCapture dataCapture = context.getBean(DecodedDataCapture.class);
+            System.out.println("✅ Decoded data capture active");
+            System.out.println("🔧 Preserves SDK decoding logic - captures before null call");
+            System.out.println("📊 SDK processes data → We capture decoded JSON → Store in database");
             
         } catch (Exception e) {
-            System.out.println("⚠️ Could not initialize internal SDK approach: " + e.getMessage());
+            System.out.println("⚠️ Could not initialize decoded data capture: " + e.getMessage());
         }
         
         System.out.println("=== SDK NETTY SERVER STARTED SUCCESSFULLY ===");
