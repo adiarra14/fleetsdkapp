@@ -16,8 +16,9 @@ RUN cp /app/emergency/com/maxvision/edge/gateway/sdk/report/*.java /app/com/maxv
 # Copy configuration
 RUN cp /app/emergency/application.yml /app/application.yml 2>/dev/null || true
 
-# Compile our emergency rescue classes
-RUN cd /app && javac -cp "/app/lib/*" com/maxvision/fleet/sdk/*.java 2>/dev/null || echo "Some classes failed to compile - continuing"
+# Compile ALL our emergency rescue classes (including root directory)
+RUN cd /app && javac -cp "/app/lib/*" *.java 2>/dev/null || echo "Root classes compilation done"
+RUN cd /app && javac -cp "/app/lib/*" com/maxvision/fleet/sdk/*.java 2>/dev/null || echo "SDK classes compilation done"
 
 # Create emergency startup script
 RUN echo '#!/bin/bash' > /app/emergency-start.sh && \
