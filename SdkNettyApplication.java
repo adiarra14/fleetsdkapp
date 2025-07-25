@@ -98,7 +98,19 @@ public class SdkNettyApplication {
         SpringApplication app = new SpringApplication(SdkNettyApplication.class);
         ConfigurableApplicationContext context = app.run(args);
         
-        // Initialize synchronized data generator (MAIN SOLUTION)
+        // EMERGENCY: MINIMAL DATA RESCUE - SAVE LIVE TY5201 DATA!
+        System.out.println("🚨 CRITICAL: Live TY5201-5603DA0C data flowing but being lost!");
+        System.out.println("🆘 Activating MINIMAL emergency rescue system");
+        
+        // Minimal Emergency Rescue - Simple and reliable
+        try {
+            MinimalEmergencyRescue minimalRescue = context.getBean(MinimalEmergencyRescue.class);
+            System.out.println("✅ MINIMAL rescue active - guaranteed data capture every 5 seconds");
+        } catch (Exception e) {
+            System.out.println("❌ Minimal rescue failed: " + e.getMessage());
+        }
+        
+        // Initialize synchronized data generator (BACKUP SOLUTION)
         try {
             SynchronizedDataGenerator generator = context.getBean(SynchronizedDataGenerator.class);
             System.out.println("✅ Synchronized data generator active");
