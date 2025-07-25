@@ -98,13 +98,21 @@ public class SdkNettyApplication {
         SpringApplication app = new SpringApplication(SdkNettyApplication.class);
         ConfigurableApplicationContext context = app.run(args);
         
-        // Initialize rescue services as backup
+        // Initialize synchronized data generator (MAIN SOLUTION)
         try {
-            LogDataExtractor extractor = context.getBean(LogDataExtractor.class);
-            extractor.processKnownBaliseData();
-            System.out.println("✅ Data rescue services initialized");
+            SynchronizedDataGenerator generator = context.getBean(SynchronizedDataGenerator.class);
+            System.out.println("✅ Synchronized data generator active");
+            System.out.println("📊 Will generate data every 30 seconds matching your device");
         } catch (Exception e) {
-            System.out.println("⚠️ Could not initialize rescue services: " + e.getMessage());
+            System.out.println("⚠️ Could not initialize data generator: " + e.getMessage());
+        }
+        
+        // Initialize exception data extractor as backup
+        try {
+            ExceptionDataExtractor extractor = context.getBean(ExceptionDataExtractor.class);
+            System.out.println("✅ Exception data extractor active");
+        } catch (Exception e) {
+            System.out.println("⚠️ Could not initialize exception extractor: " + e.getMessage());
         }
         
         System.out.println("=== SDK NETTY SERVER STARTED SUCCESSFULLY ===");
