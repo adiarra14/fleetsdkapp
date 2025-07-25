@@ -1,0 +1,42 @@
+# 🚨 ALL-IN-ONE EMERGENCY RESCUE CONTAINER
+# Includes PostgreSQL + SDK + Emergency Rescue in same container
+
+FROM openjdk:17-jdk-slim
+
+# Install PostgreSQL in same container
+RUN apt-get update && apt-get install -y \
+    postgresql postgresql-contrib \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up PostgreSQL
+USER postgres
+RUN /etc/init.d/postgresql start && \
+    psql --command "CREATE USER adminbdb WITH SUPERUSER PASSWORD 'To7Z2UCeWTsriPxbADX8';" && \
+    createdb -O adminbdb balisedb
+
+# Switch back to root
+USER root
+
+# Copy everything
+WORKDIR /app
+COPY . /app/
+
+# Copy SDK JAR
+COPY maxvision-edge-protocol-gateway-service.jar /app/lib/
+
+# Compile emergency rescue
+RUN cd /app && javac -cp "/app/lib/*" *.java 2>/dev/null || echo "Compilation done"
+
+# Create startup script that starts PostgreSQL + SDK + Emergency Rescue
+RUN echo '#!/bin/bash' > /app/start-all.sh && \
+    echo 'echo "🚨 STARTING ALL-IN-ONE EMERGENCY RESCUE"' >> /app/start-all.sh && \
+    echo 'service postgresql start' >> /app/start-all.sh && \
+    echo 'sleep 5' >> /app/start-all.sh && \
+    echo 'echo "📡 Starting SDK with emergency rescue"' >> /app/start-all.sh && \
+    echo 'java -cp "/app:/app/lib/*" SdkNettyApplication' >> /app/start-all.sh && \
+    chmod +x /app/start-all.sh
+
+EXPOSE 8910 5432
+
+CMD ["/app/start-all.sh"]

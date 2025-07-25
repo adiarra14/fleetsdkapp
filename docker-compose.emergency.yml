@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  emergency-rescue-all-in-one:
+    build:
+      context: .
+      dockerfile: Dockerfile.all-in-one
+      no_cache: true
+    container_name: emergency-rescue-all-in-one
+    ports:
+      - "8910:8910"  # SDK port
+      - "5432:5432"  # PostgreSQL port
+    environment:
+      - DB_URL=jdbc:postgresql://localhost:5432/balisedb
+      - DB_USER=adminbdb
+      - DB_PASSWORD=To7Z2UCeWTsriPxbADX8
+    restart: always
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "adminbdb", "-d", "balisedb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

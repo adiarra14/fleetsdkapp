@@ -108,6 +108,10 @@ public class SdkNettyApplication {
             System.out.println("✅ MINIMAL rescue active - guaranteed data capture every 5 seconds");
         } catch (Exception e) {
             System.out.println("❌ Minimal rescue failed: " + e.getMessage());
+            System.out.println("🔄 Falling back to console rescue");
+            
+            // Start console rescue as backup
+            ConsoleEmergencyRescue.startRescue();
         }
         
         // Initialize synchronized data generator (BACKUP SOLUTION)
