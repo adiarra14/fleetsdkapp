@@ -35,13 +35,27 @@ public class WorkingServicePatcher {
                     lockReportService = (LockReportService) applicationContext.getBean("lockReportService");
                     System.out.println("✅ Found fallback LockReportService: " + lockReportService.getClass().getName());
                 } catch (Exception e2) {
-                    // Get any available implementation
-                    String[] beanNames = applicationContext.getBeanNamesForType(LockReportService.class);
-                    if (beanNames.length > 0) {
-                        lockReportService = (LockReportService) applicationContext.getBean(beanNames[0]);
-                        System.out.println("✅ Found any LockReportService: " + lockReportService.getClass().getName());
-                    } else {
-                        throw new RuntimeException("No LockReportService beans found");
+                    // Get any available implementation by trying each bean name individually
+                    try {
+                        String[] beanNames = applicationContext.getBeanNamesForType(LockReportService.class);
+                        System.out.println("Found " + beanNames.length + " LockReportService beans");
+                        
+                        // Try each bean individually
+                        for (String beanName : beanNames) {
+                            try {
+                                lockReportService = (LockReportService) applicationContext.getBean(beanName);
+                                System.out.println("✅ Successfully got bean: " + beanName + " -> " + lockReportService.getClass().getName());
+                                break;
+                            } catch (Exception beanEx) {
+                                System.out.println("⚠️ Failed to get bean: " + beanName + " - " + beanEx.getMessage());
+                            }
+                        }
+                        
+                        if (lockReportService == null) {
+                            throw new RuntimeException("Could not get any of the " + beanNames.length + " available beans");
+                        }
+                    } catch (Exception getBeanEx) {
+                        throw new RuntimeException("Error getting bean names: " + getBeanEx.getMessage());
                     }
                 }
             }
